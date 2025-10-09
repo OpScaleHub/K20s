@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k20s
+  name: k20s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k20s
+  template:
+    metadata:
+
+      labels:
+        app: k20s
+    spec:
+      containers:
+      - image: ghcr.io/OpScaleHub/K20s:stable
+        name: k20s
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
