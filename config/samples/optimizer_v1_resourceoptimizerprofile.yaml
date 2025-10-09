@@ -1,0 +1,9 @@
+apiVersion: optimizer.example.com/v1
+kind: ResourceOptimizerProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k20s
+    app.kubernetes.io/managed-by: kustomize
+  name: resourceoptimizerprofile-sample
+spec:
+  # TODO(user): Add fields here

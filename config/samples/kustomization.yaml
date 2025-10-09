@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- optimizer_v1_resourceoptimizerprofile.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
