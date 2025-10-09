@@ -3,8 +3,6 @@ kind: Config
 metadata:
   name: k20s
 build:
-  tagPolicy:
-    sha256: {}
   artifacts:
   - image: ghcr.io/OpScaleHub/K20s
     context: .
