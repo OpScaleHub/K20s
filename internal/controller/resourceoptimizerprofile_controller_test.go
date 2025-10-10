@@ -19,6 +19,8 @@ package controller
 import (
 	"context"
 
+	"github.com/prometheus/common/model"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -51,7 +53,16 @@ var _ = Describe("ResourceOptimizerProfile Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: optimizerv1.ResourceOptimizerProfileSpec{
+						Selector: metav1.LabelSelector{
+							MatchLabels: map[string]string{"app": "test-app"},
+						},
+						CPUThresholds: optimizerv1.ThresholdSpec{
+							Min: 30,
+							Max: 70,
+						},
+						OptimizationPolicy: "Recommend",
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
@@ -71,6 +82,10 @@ var _ = Describe("ResourceOptimizerProfile Controller", func() {
 			controllerReconciler := &ResourceOptimizerProfileReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
+				// Provide a mock API to prevent nil pointer dereference
+				PrometheusAPI: &mockPrometheusAPI{
+					result: model.Vector{}, // Return an empty vector for this basic test
+				},
 			}
 
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{

@@ -9,7 +9,6 @@ import (
 	"github.com/prometheus/client_golang/api"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
@@ -23,18 +22,19 @@ func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
 }
 
 func buildPromQL(profile *optimizerv1.ResourceOptimizerProfile) (string, error) {
-	selector, err := metav1.LabelSelectorAsSelector(&profile.Spec.Selector)
-	if err != nil {
-		return "", err
-	}
-
-	query := fmt.Sprintf(`avg_over_time(container_cpu_usage_seconds_total{namespace="%s", pod=~"%s"}[1h])`,
-		profile.Namespace, selector.String())
+	// This query calculates the average CPU usage over the last hour and divides it by the requested CPU resources.
+	// The result is the CPU utilization as a percentage of the request.
+	// Multiplying by 100 gives a value comparable to the spec's min/max thresholds.
+	query := fmt.Sprintf(`
+		sum(avg_over_time(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*%s.*"}[5m])[1h:5m])) by (pod)
+		/
+		sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod) * 100`,
+		profile.Namespace, profile.Spec.Selector.MatchLabels["app"], profile.Namespace, profile.Spec.Selector.MatchLabels["app"])
 
 	return query, nil
 }
 
-func executePromQL(ctx context.Context, promAPI prometheusv1.API, query string) (model.Value, error) {
+func executePromQL(ctx context.Context, promAPI PrometheusClient, query string) (model.Value, error) {
 	result, warnings, err := promAPI.Query(ctx, query, time.Now())
 	if err != nil {
 		return nil, err

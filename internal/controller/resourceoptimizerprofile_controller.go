@@ -23,6 +23,8 @@ import (
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -31,18 +33,54 @@ import (
 
 	optimizerv1 "github.com/OpScaleHub/K20s/api/v1"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 const (
-	ScaleUpAction = "ScaleUp"
+	ScaleUpAction    = "ScaleUp"
+	ScaleDownAction  = "ScaleDown"
+	ResizeUpAction   = "ResizeUp"
+	ResizeDownAction = "ResizeDown"
+	DoNothing        = "DoNothing"
 )
+
+var (
+	scaleUpActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_scale_up_actions_total",
+		Help: "Total number of scale up actions taken",
+	})
+	scaleDownActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_scale_down_actions_total",
+		Help: "Total number of scale down actions taken",
+	})
+	resizeUpActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_resize_up_actions_total",
+		Help: "Total number of resize up actions taken",
+	})
+	resizeDownActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_resize_down_actions_total",
+		Help: "Total number of resize down actions taken",
+	})
+)
+
+func init() {
+	metrics.Registry.MustRegister(scaleUpActions, scaleDownActions, resizeUpActions, resizeDownActions)
+}
+
+// PrometheusClient defines the interface for a Prometheus API client.
+// This simplifies testing by allowing us to mock only the methods we use.
+type PrometheusClient interface {
+	Query(ctx context.Context, query string, ts time.Time, opts ...prometheusv1.Option) (model.Value, prometheusv1.Warnings, error)
+}
 
 // ResourceOptimizerProfileReconciler reconciles a ResourceOptimizerProfile object
 type ResourceOptimizerProfileReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
-	PrometheusAPI prometheusv1.API
+	PrometheusAPI PrometheusClient
 }
 
 // +kubebuilder:rbac:groups=optimizer.example.com,resources=resourceoptimizerprofiles,verbs=get;list;watch;create;update;patch;delete
@@ -94,26 +132,116 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 	var action string
 
 	if value < float64(cpuThresholds.Min) {
-		action = "ScaleDown"
+		if resourceOptimizerProfile.Spec.OptimizationPolicy == "Resize" {
+			action = ResizeDownAction
+		} else {
+			action = ScaleDownAction
+		}
 	} else if value > float64(cpuThresholds.Max) {
-		action = ScaleUpAction
+		if resourceOptimizerProfile.Spec.OptimizationPolicy == "Resize" {
+			action = ResizeUpAction
+		} else {
+			action = ScaleUpAction
+		}
 	} else {
-		action = "DoNothing"
+		action = DoNothing
 	}
 
 	logger.Info("Comparison result", "action", action)
 
-	// 4. Execute policy action
-	logger.Info("Executing policy action...")
-	if err := r.executePolicyAction(ctx, &resourceOptimizerProfile, action); err != nil {
-		logger.Error(err, "error executing policy action")
-		return ctrl.Result{}, err
+	// 4. Handle actions based on the optimization policy
+	switch resourceOptimizerProfile.Spec.OptimizationPolicy {
+	case "Scale":
+		// Policy is "Scale", so we proceed with action execution
+		cooldownPeriod := 5 * time.Minute // Default cooldown
+		if resourceOptimizerProfile.Spec.CooldownPeriod != nil {
+			cooldownPeriod = resourceOptimizerProfile.Spec.CooldownPeriod.Duration
+		}
+		logger.Info("Using cooldown period", "cooldown", cooldownPeriod.String())
+
+		lastAction := resourceOptimizerProfile.Status.LastAction
+
+		if action != DoNothing && lastAction != nil && lastAction.Type != DoNothing {
+			if time.Since(lastAction.Timestamp.Time) < cooldownPeriod {
+				logger.Info("Action is in cooldown period, skipping execution", "action", action, "lastActionTimestamp", lastAction.Timestamp)
+				// Requeue after the cooldown period expires
+				requeueAfter := cooldownPeriod - time.Since(lastAction.Timestamp.Time)
+				return ctrl.Result{RequeueAfter: requeueAfter}, nil
+			}
+		}
+
+		logger.Info("Executing policy action...")
+		if err := r.executeScaleAction(ctx, &resourceOptimizerProfile, action); err != nil {
+			logger.Error(err, "error executing scale action")
+			return ctrl.Result{}, err
+		}
+
+		switch action {
+		case ScaleUpAction:
+			scaleUpActions.Inc()
+		case ScaleDownAction:
+			scaleDownActions.Inc()
+		}
+
+		if action != DoNothing {
+			resourceOptimizerProfile.Status.LastAction = &optimizerv1.ActionDetail{
+				Type:      action,
+				Timestamp: metav1.Now(),
+				Details:   fmt.Sprintf("CPU usage was %.2f, triggered %s", value, action),
+			}
+		}
+	case "Resize":
+		cooldownPeriod := 5 * time.Minute // Default cooldown
+		if resourceOptimizerProfile.Spec.CooldownPeriod != nil {
+			cooldownPeriod = resourceOptimizerProfile.Spec.CooldownPeriod.Duration
+		}
+		logger.Info("Using cooldown period for Resize", "cooldown", cooldownPeriod.String())
+
+		lastAction := resourceOptimizerProfile.Status.LastAction
+		if action != DoNothing && lastAction != nil && lastAction.Type != DoNothing {
+			if time.Since(lastAction.Timestamp.Time) < cooldownPeriod {
+				logger.Info("Action is in cooldown period, skipping execution", "action", action, "lastActionTimestamp", lastAction.Timestamp)
+				requeueAfter := cooldownPeriod - time.Since(lastAction.Timestamp.Time)
+				return ctrl.Result{RequeueAfter: requeueAfter}, nil
+			}
+		}
+
+		logger.Info("Executing resize action...")
+		if err := r.executeResizeAction(ctx, &resourceOptimizerProfile, action, value); err != nil {
+			logger.Error(err, "error executing resize action")
+			return ctrl.Result{}, err
+		}
+
+		switch action {
+		case ResizeUpAction:
+			resizeUpActions.Inc()
+		case ResizeDownAction:
+			resizeDownActions.Inc()
+		}
+
+		if action != DoNothing {
+			resourceOptimizerProfile.Status.LastAction = &optimizerv1.ActionDetail{
+				Type:      action,
+				Timestamp: metav1.Now(),
+				Details:   fmt.Sprintf("CPU usage was %.2f%%, triggered %s", value, action),
+			}
+		}
+
+	case "Recommend":
+		if action != DoNothing {
+			recommendation := fmt.Sprintf("CPU usage is %.2f%%. Consider %s.", value, action)
+			resourceOptimizerProfile.Status.Recommendations = []string{recommendation}
+		} else {
+			// For recommend policy, we clear previous recommendations if no action is needed now
+			resourceOptimizerProfile.Status.Recommendations = nil
+		}
+	default:
+		logger.Info("OptimizationPolicy is not 'Scale' or 'Recommend', no action will be taken.", "policy", resourceOptimizerProfile.Spec.OptimizationPolicy)
 	}
 
-	// 5. Update status
+	// 5. Update status for all policies
 	logger.Info("Updating status...")
 	resourceOptimizerProfile.Status.ObservedMetrics = map[string]string{"cpu_usage": fmt.Sprintf("%.2f", value)}
-	resourceOptimizerProfile.Status.LastAction = action
 	if err := r.Status().Update(ctx, &resourceOptimizerProfile); err != nil {
 		logger.Error(err, "unable to update ResourceOptimizerProfile status")
 		return ctrl.Result{}, err
@@ -122,10 +250,10 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 	return ctrl.Result{RequeueAfter: time.Minute * 5}, nil
 }
 
-func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Context, profile *optimizerv1.ResourceOptimizerProfile, action string) error {
+func (r *ResourceOptimizerProfileReconciler) executeScaleAction(ctx context.Context, profile *optimizerv1.ResourceOptimizerProfile, action string) error {
 	logger := log.FromContext(ctx)
 
-	if action == "DoNothing" {
+	if action == DoNothing {
 		return nil
 	}
 
@@ -140,7 +268,7 @@ func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Con
 	for _, deployment := range deployments.Items {
 		patch := client.MergeFrom(deployment.DeepCopy())
 		var newReplicas int32
-		if action == "ScaleUp" {
+		if action == ScaleUpAction {
 			newReplicas = *deployment.Spec.Replicas + 1
 		} else {
 			newReplicas = *deployment.Spec.Replicas - 1
@@ -167,7 +295,7 @@ func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Con
 	for _, statefulSet := range statefulSets.Items {
 		patch := client.MergeFrom(statefulSet.DeepCopy())
 		var newReplicas int32
-		if action == "ScaleUp" {
+		if action == ScaleUpAction {
 			newReplicas = *statefulSet.Spec.Replicas + 1
 		} else {
 			newReplicas = *statefulSet.Spec.Replicas - 1
@@ -188,11 +316,107 @@ func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Con
 	return nil
 }
 
+func (r *ResourceOptimizerProfileReconciler) executeResizeAction(ctx context.Context, profile *optimizerv1.ResourceOptimizerProfile, action string, observedValue float64) error {
+	logger := log.FromContext(ctx)
+
+	if action == DoNothing {
+		return nil
+	}
+
+	labelSelector := labels.Set(profile.Spec.Selector.MatchLabels).AsSelector()
+
+	// --- Handle Deployments ---
+	var deployments appsv1.DeploymentList
+	if err := r.List(ctx, &deployments, &client.ListOptions{LabelSelector: labelSelector, Namespace: profile.Namespace}); err != nil {
+		return err
+	}
+
+	for _, deployment := range deployments.Items {
+		patch := client.MergeFrom(deployment.DeepCopy())
+
+		// Iterate over containers and update the first one with a CPU request
+		for i, container := range deployment.Spec.Template.Spec.Containers {
+			if _, ok := container.Resources.Requests[corev1.ResourceCPU]; ok {
+				// Simple resize logic: target usage is the middle of the threshold range
+				targetUsagePercent := (float64(profile.Spec.CPUThresholds.Min+profile.Spec.CPUThresholds.Max) / 2)
+				// Calculate new request based on observed usage to meet the target percentage
+				// newRequest = (currentUsage / targetPercent)
+				newCPUValue := (observedValue / targetUsagePercent) * container.Resources.Requests.Cpu().AsApproximateFloat64()
+
+				// Add a 25% buffer for safety
+				newCPUValue *= 1.25
+
+				newCPURequest := resource.NewMilliQuantity(int64(newCPUValue*1000), resource.DecimalSI)
+
+				// Enforce min/max boundaries if they are defined in the spec
+				if profile.Spec.MinCPU != nil && newCPURequest.Cmp(*profile.Spec.MinCPU) < 0 {
+					newCPURequest = profile.Spec.MinCPU
+					logger.Info("Clamping CPU request to configured minCPU", "deployment", deployment.Name, "minCPU", profile.Spec.MinCPU.String())
+				}
+				if profile.Spec.MaxCPU != nil && newCPURequest.Cmp(*profile.Spec.MaxCPU) > 0 {
+					newCPURequest = profile.Spec.MaxCPU
+					logger.Info("Clamping CPU request to configured maxCPU", "deployment", deployment.Name, "maxCPU", profile.Spec.MaxCPU.String())
+				}
+
+				deployment.Spec.Template.Spec.Containers[i].Resources.Requests[corev1.ResourceCPU] = *newCPURequest
+
+				if err := r.Patch(ctx, &deployment, patch); err != nil {
+					logger.Error(err, "error patching deployment for resize")
+					return err
+				}
+				logger.Info("Patched deployment for resize", "deployment", deployment.Name, "newCPURequest", newCPURequest.String())
+				break // Only patch the first container with CPU requests for now
+			}
+		}
+	}
+
+	// --- Handle StatefulSets (similar logic) ---
+	var statefulSets appsv1.StatefulSetList
+	if err := r.List(ctx, &statefulSets, &client.ListOptions{LabelSelector: labelSelector, Namespace: profile.Namespace}); err != nil {
+		return err
+	}
+
+	for _, ss := range statefulSets.Items {
+		patch := client.MergeFrom(ss.DeepCopy())
+
+		for i, container := range ss.Spec.Template.Spec.Containers {
+			if _, ok := container.Resources.Requests[corev1.ResourceCPU]; ok {
+				targetUsagePercent := (float64(profile.Spec.CPUThresholds.Min+profile.Spec.CPUThresholds.Max) / 2)
+				newCPUValue := (observedValue / targetUsagePercent) * container.Resources.Requests.Cpu().AsApproximateFloat64()
+				newCPUValue *= 1.25 // Add 25% buffer
+
+				newCPURequest := resource.NewMilliQuantity(int64(newCPUValue*1000), resource.DecimalSI)
+
+				// Enforce min/max boundaries if they are defined in the spec
+				if profile.Spec.MinCPU != nil && newCPURequest.Cmp(*profile.Spec.MinCPU) < 0 {
+					newCPURequest = profile.Spec.MinCPU
+					logger.Info("Clamping CPU request to configured minCPU", "statefulset", ss.Name, "minCPU", profile.Spec.MinCPU.String())
+				}
+				if profile.Spec.MaxCPU != nil && newCPURequest.Cmp(*profile.Spec.MaxCPU) > 0 {
+					newCPURequest = profile.Spec.MaxCPU
+					logger.Info("Clamping CPU request to configured maxCPU", "statefulset", ss.Name, "maxCPU", profile.Spec.MaxCPU.String())
+				}
+
+				ss.Spec.Template.Spec.Containers[i].Resources.Requests[corev1.ResourceCPU] = *newCPURequest
+
+				if err := r.Patch(ctx, &ss, patch); err != nil {
+					logger.Error(err, "error patching statefulset for resize")
+					return err
+				}
+				logger.Info("Patched statefulset for resize", "statefulset", ss.Name, "newCPURequest", newCPURequest.String())
+				break // Only patch the first container with CPU requests
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *ResourceOptimizerProfileReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	prometheusURL := os.Getenv("PROMETHEUS_URL")
 	if prometheusURL == "" {
-		prometheusURL = "http://prometheus-k8s.monitoring.svc.cluster.local:9090"
+		prometheusURL = "http://prometheus-operated.monitoring.svc.cluster.local:9090"
 	}
 
 	promAPI, err := newPrometheusAPI(prometheusURL)
