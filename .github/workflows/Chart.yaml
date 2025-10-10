@@ -1,6 +1,0 @@
-apiVersion: v2
-name: k20s
-description: A Kubernetes controller for intelligent workload autoscaling.
-type: application
-version: 0.1.0 # This will be updated by the release workflow
-appVersion: 0.1.0 # This will be updated by the release workflow
