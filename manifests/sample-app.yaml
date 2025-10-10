@@ -1,0 +1,90 @@
+# sample-app.yaml
+
+# --- 1. A sample Nginx Deployment ---
+# This is the workload our controller will monitor and optimize.
+# It has a label "app: my-nginx" and a CPU request of 100m.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-deployment
+  namespace: default # Deploying in the default namespace for simplicity
+  labels:
+    app: my-nginx
+spec:
+  replicas: 2 # Start with 2 replicas
+  selector:
+    matchLabels:
+      app: my-nginx
+  template:
+    metadata:
+      labels:
+        app: my-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+---
+# --- 2. ResourceOptimizerProfile Examples ---
+# Choose ONE of the following profiles to apply.
+
+# Option A: "Recommend" Policy
+# This profile will analyze the Nginx deployment and add a recommendation
+# to the status field, but it will NOT perform any actions.
+# This is the safest option to start with.
+apiVersion: optimizer.example.com/v1
+kind: ResourceOptimizerProfile
+metadata:
+  name: my-nginx-recommend
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: my-nginx
+  optimizationPolicy: Recommend
+  cpuThresholds:
+    min: 20
+    max: 60
+---
+# Option B: "Scale" Policy
+# This profile will automatically scale the number of replicas for the
+# Nginx deployment up or down to keep CPU usage within the target range.
+# apiVersion: optimizer.example.com/v1
+# kind: ResourceOptimizerProfile
+# metadata:
+#   name: my-nginx-scale
+#   namespace: default
+# spec:
+#   selector:
+#     matchLabels:
+#       app: my-nginx
+#   optimizationPolicy: Scale
+#   cpuThresholds:
+#     min: 20
+#     max: 60
+#   cooldownPeriod: "2m" # Wait 2 minutes between scaling actions
+---
+# Option C: "Resize" Policy
+# This profile will automatically change the CPU requests of the Nginx
+# pods to keep usage within the target range. It includes safety rails.
+# apiVersion: optimizer.example.com/v1
+# kind: ResourceOptimizerProfile
+# metadata:
+#   name: my-nginx-resize
+#   namespace: default
+# spec:
+#   selector:
+#     matchLabels:
+#       app: my-nginx
+#   optimizationPolicy: Resize
+#   cpuThresholds:
+#     min: 20
+#     max: 60
+#   cooldownPeriod: "5m"
+#   minCPU: "50m"   # Safety rail: never set CPU request below 50m
+#   maxCPU: "500m"  # Safety rail: never set CPU request above 500m
