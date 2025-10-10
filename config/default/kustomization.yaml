@@ -8,6 +8,10 @@ namespace: k20s-system
 # field above.
 namePrefix: k20s-
 
+images:
+- name: controller
+  newName: ghcr.io/opscalehub/k20s
+
 # Labels to add to all resources and selectors.
 #labels:
 #- includeSelectors: true

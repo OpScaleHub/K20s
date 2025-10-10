@@ -11,6 +11,6 @@ build:
     docker:
       dockerfile: Dockerfile
 manifests:
-  rawYaml:
-    - config/crd/bases/optimizer.example.com_resourceoptimizerprofiles.yaml
-    - manifests/*.yaml
+  kustomize:
+    paths:
+      - config/default
