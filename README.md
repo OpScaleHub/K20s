@@ -47,9 +47,9 @@ The core `Reconcile` loop will involve two critical, challenging steps:
 ## 3. Technology Stack
 
 * **Language:** Go (Golang)
-* **Framework:** Kubebuilder / Operator-SDK
+* **Framework:** Kubebuilder
 * **Libraries:** `sigs.k8s.io/controller-runtime`, `k8s.io/client-go`, and a PromQL/Prometheus client library.
-* **Environment:** Existing Kubernetes cluster with Prometheus/Thanos deployed and accessible via a Service.
+* **Environment:** Existing Kubernetes cluster with Prometheus deployed and accessible via a Service.
 
 ---
 
