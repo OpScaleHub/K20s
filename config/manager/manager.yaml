@@ -55,11 +55,13 @@ spec:
         # This ensures that deployments meet the highest security requirements for Kubernetes.
         # For more details, see: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
         runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /main
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081

@@ -3,11 +3,14 @@ kind: Config
 metadata:
   name: k20s
 build:
+  local:
+    push: false
   artifacts:
-  - image: ghcr.io/OpScaleHub/K20s
+  - image: ghcr.io/opscalehub/k20s
     context: .
     docker:
       dockerfile: Dockerfile
 manifests:
-  rawYaml:
-    - manifests/*.yaml
+  kustomize:
+    paths:
+      - config/default

@@ -34,6 +34,10 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+const (
+	ScaleUpAction = "ScaleUp"
+)
+
 // ResourceOptimizerProfileReconciler reconciles a ResourceOptimizerProfile object
 type ResourceOptimizerProfileReconciler struct {
 	client.Client
@@ -49,31 +53,31 @@ type ResourceOptimizerProfileReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	// 1. Fetch ResourceOptimizerProfile
 	var resourceOptimizerProfile optimizerv1.ResourceOptimizerProfile
 	if err := r.Get(ctx, req.NamespacedName, &resourceOptimizerProfile); err != nil {
-		log.Error(err, "unable to fetch ResourceOptimizerProfile")
+		logger.Error(err, "unable to fetch ResourceOptimizerProfile")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// 2. Query Prometheus for metrics
-	log.Info("Querying Prometheus for metrics...")
+	logger.Info("Querying Prometheus for metrics...")
 	query, err := buildPromQL(&resourceOptimizerProfile)
 	if err != nil {
-		log.Error(err, "error building PromQL query")
+		logger.Error(err, "error building PromQL query")
 		return ctrl.Result{}, err
 	}
 	result, err := executePromQL(ctx, r.PrometheusAPI, query)
 	if err != nil {
-		log.Error(err, "error querying Prometheus")
+		logger.Error(err, "error querying Prometheus")
 		return ctrl.Result{}, err
 	}
-	log.Info("Prometheus query result", "result", result)
+	logger.Info("Prometheus query result", "result", result)
 
 	// 3. Compare against thresholds
-	log.Info("Comparing metrics against thresholds...")
+	logger.Info("Comparing metrics against thresholds...")
 	var value float64
 	switch result.Type() {
 	case model.ValVector:
@@ -82,7 +86,7 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 			value = float64(vector[0].Value)
 		}
 	default:
-		log.Info("Prometheus query did not return a vector")
+		logger.Info("Prometheus query did not return a vector")
 		return ctrl.Result{RequeueAfter: time.Minute * 5}, nil
 	}
 
@@ -92,26 +96,26 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 	if value < float64(cpuThresholds.Min) {
 		action = "ScaleDown"
 	} else if value > float64(cpuThresholds.Max) {
-		action = "ScaleUp"
+		action = ScaleUpAction
 	} else {
 		action = "DoNothing"
 	}
 
-	log.Info("Comparison result", "action", action)
+	logger.Info("Comparison result", "action", action)
 
 	// 4. Execute policy action
-	log.Info("Executing policy action...")
+	logger.Info("Executing policy action...")
 	if err := r.executePolicyAction(ctx, &resourceOptimizerProfile, action); err != nil {
-		log.Error(err, "error executing policy action")
+		logger.Error(err, "error executing policy action")
 		return ctrl.Result{}, err
 	}
 
 	// 5. Update status
-	log.Info("Updating status...")
+	logger.Info("Updating status...")
 	resourceOptimizerProfile.Status.ObservedMetrics = map[string]string{"cpu_usage": fmt.Sprintf("%.2f", value)}
 	resourceOptimizerProfile.Status.LastAction = action
 	if err := r.Status().Update(ctx, &resourceOptimizerProfile); err != nil {
-		log.Error(err, "unable to update ResourceOptimizerProfile status")
+		logger.Error(err, "unable to update ResourceOptimizerProfile status")
 		return ctrl.Result{}, err
 	}
 
@@ -119,7 +123,7 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 }
 
 func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Context, profile *optimizerv1.ResourceOptimizerProfile, action string) error {
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	if action == "DoNothing" {
 		return nil
@@ -148,10 +152,10 @@ func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Con
 
 		deployment.Spec.Replicas = &newReplicas
 		if err := r.Patch(ctx, &deployment, patch); err != nil {
-			log.Error(err, "error patching deployment")
+			logger.Error(err, "error patching deployment")
 			return err
 		}
-		log.Info("Patched deployment", "deployment", deployment.Name, "replicas", newReplicas)
+		logger.Info("Patched deployment", "deployment", deployment.Name, "replicas", newReplicas)
 	}
 
 	// List StatefulSets
@@ -175,10 +179,10 @@ func (r *ResourceOptimizerProfileReconciler) executePolicyAction(ctx context.Con
 
 		statefulSet.Spec.Replicas = &newReplicas
 		if err := r.Patch(ctx, &statefulSet, patch); err != nil {
-			log.Error(err, "error patching statefulset")
+			logger.Error(err, "error patching statefulset")
 			return err
 		}
-		log.Info("Patched statefulset", "statefulset", statefulSet.Name, "replicas", newReplicas)
+		logger.Info("Patched statefulset", "statefulset", statefulSet.Name, "replicas", newReplicas)
 	}
 
 	return nil
