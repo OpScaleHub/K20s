@@ -34,6 +34,10 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+const (
+	ScaleUpAction = "ScaleUp"
+)
+
 // ResourceOptimizerProfileReconciler reconciles a ResourceOptimizerProfile object
 type ResourceOptimizerProfileReconciler struct {
 	client.Client
@@ -49,7 +53,7 @@ type ResourceOptimizerProfileReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	// 1. Fetch ResourceOptimizerProfile
 	var resourceOptimizerProfile optimizerv1.ResourceOptimizerProfile
@@ -92,7 +96,7 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 	if value < float64(cpuThresholds.Min) {
 		action = "ScaleDown"
 	} else if value > float64(cpuThresholds.Max) {
-		action = "ScaleUp"
+		action = ScaleUpAction
 	} else {
 		action = "DoNothing"
 	}
