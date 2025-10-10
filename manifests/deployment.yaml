@@ -16,7 +16,8 @@ spec:
         app: k20s
     spec:
       containers:
-      - image: ghcr.io/OpScaleHub/K20s:stable
+      - image: ghcr.io/opscalehub/k20s:stable
+        imagePullPolicy: Always
         name: k20s
         resources:
           limits:
