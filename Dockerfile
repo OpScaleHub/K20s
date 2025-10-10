@@ -20,14 +20,10 @@ COPY internal/ internal/
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o /main ./cmd/main.go
 
-# Certificates stage
-FROM alpine:3.21.3 AS certs
-RUN apk add --no-cache ca-certificates
-
 # Final stage
-FROM scratch
-ENV PATH=/bin
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+FROM alpine:3.21.3
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 COPY --from=builder /main /main
 EXPOSE 8080
 ENTRYPOINT ["/main"]
