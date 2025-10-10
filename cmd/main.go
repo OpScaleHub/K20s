@@ -17,8 +17,11 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"flag"
+	"html/template"
+	"net/http"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -29,6 +32,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
@@ -88,17 +92,23 @@ func main() {
 		TLSOpts: tlsOpts,
 	})
 
+	// Create the status page handler. We will inject the client later to break a dependency cycle.
+	statusHandler := &StatusPageHandler{}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: server.Options{
 			BindAddress:   metricsAddr,
 			SecureServing: secureMetrics,
 			TLSOpts:       tlsOpts,
+			ExtraHandlers: map[string]http.Handler{
+				"/status": statusHandler,
+			},
 		},
 		WebhookServer:          webs,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "f8c0d2a.opscalehub.com",
+		LeaderElectionID:       "f8c0d2a.example.com",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -115,6 +125,10 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+
+	// Inject the client into the status handler now that the manager is created.
+	statusHandler.Client = mgr.GetClient()
+	setupLog.Info("status page handler registered", "path", "/status")
 
 	if err = (&controller.ResourceOptimizerProfileReconciler{
 		Client: mgr.GetClient(),
@@ -140,4 +154,78 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// StatusPageHandler serves a simple HTML page with the status of all ResourceOptimizerProfiles.
+type StatusPageHandler struct {
+	Client client.Client
+}
+
+const statusPageTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>K20s Controller Status</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+		h1 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>K20s Controller Status</h1>
+    <h2>Resource Optimizer Profiles</h2>
+    <table>
+        <tr>
+            <th>Namespace</th>
+            <th>Name</th>
+            <th>Policy</th>
+            <th>Last Action</th>
+            <th>Observed CPU</th>
+            <th>Recommendation</th>
+        </tr>
+        {{range .Items}}
+        <tr>
+            <td>{{.Namespace}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Spec.OptimizationPolicy}}</td>
+            <td>{{if .Status.LastAction}}{{.Status.LastAction.Type}} @ {{.Status.LastAction.Timestamp.Format "2006-01-02 15:04:05"}}{{else}}None{{end}}</td>
+            <td>{{if .Status.ObservedMetrics}}{{.Status.ObservedMetrics.cpu_usage}}%{{else}}N/A{{end}}</td>
+            <td>{{if .Status.Recommendations}}{{range .Status.Recommendations}}{{.}}{{end}}{{else}}None{{end}}</td>
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>
+`
+
+func (h *StatusPageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logger := ctrl.Log.WithName("status-handler")
+
+	var profiles optimizerv1.ResourceOptimizerProfileList
+	if err := h.Client.List(ctx, &profiles); err != nil {
+		logger.Error(err, "failed to list ResourceOptimizerProfiles")
+		http.Error(w, "Failed to list resources", http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.New("status").Parse(statusPageTemplate)
+	if err != nil {
+		logger.Error(err, "failed to parse HTML template")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, profiles); err != nil {
+		logger.Error(err, "failed to execute HTML template")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(buf.Bytes())
 }
