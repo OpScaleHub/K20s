@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/client_golang/api"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
@@ -22,7 +23,7 @@ func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
 }
 
 func buildPromQL(profile *optimizerv1.ResourceOptimizerProfile) (string, error) {
-	selector, err := metav1.LabelSelectorAsSelector(profile.Spec.Selector)
+	selector, err := metav1.LabelSelectorAsSelector(&profile.Spec.Selector)
 	if err != nil {
 		return "", err
 	}

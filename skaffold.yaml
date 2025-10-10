@@ -3,6 +3,8 @@ kind: Config
 metadata:
   name: k20s
 build:
+  local:
+    push: false
   artifacts:
   - image: ghcr.io/OpScaleHub/K20s
     context: .
