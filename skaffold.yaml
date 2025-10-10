@@ -6,7 +6,7 @@ build:
   local:
     push: false
   artifacts:
-  - image: ghcr.io/opscalehub/k20s
+  - image: ghcr.io/opscalehub/k20s # This will be updated by the release workflow
     context: .
     docker:
       dockerfile: Dockerfile
