@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k20s.fullname" . }}-resourceoptimizerprofile-editor-role
+  labels:
+    {{- include "k20s.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - optimizer.example.com
+  resources:
+  - resourceoptimizerprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - optimizer.example.com
+  resources:
+  - resourceoptimizerprofiles/status
+  verbs:
+  - get
