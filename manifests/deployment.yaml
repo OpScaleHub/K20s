@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - image: ghcr.io/opscalehub/k20s:stable
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: k20s
         resources:
           limits:
