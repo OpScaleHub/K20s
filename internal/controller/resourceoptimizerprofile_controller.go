@@ -33,8 +33,10 @@ import (
 
 	optimizerv1 "github.com/OpScaleHub/K20s/api/v1"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 const (
@@ -44,6 +46,29 @@ const (
 	ResizeDownAction = "ResizeDown"
 	DoNothing        = "DoNothing"
 )
+
+var (
+	scaleUpActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_scale_up_actions_total",
+		Help: "Total number of scale up actions taken",
+	})
+	scaleDownActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_scale_down_actions_total",
+		Help: "Total number of scale down actions taken",
+	})
+	resizeUpActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_resize_up_actions_total",
+		Help: "Total number of resize up actions taken",
+	})
+	resizeDownActions = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "k20s_resize_down_actions_total",
+		Help: "Total number of resize down actions taken",
+	})
+)
+
+func init() {
+	metrics.Registry.MustRegister(scaleUpActions, scaleDownActions, resizeUpActions, resizeDownActions)
+}
 
 // PrometheusClient defines the interface for a Prometheus API client.
 // This simplifies testing by allowing us to mock only the methods we use.
@@ -151,6 +176,13 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 			return ctrl.Result{}, err
 		}
 
+		switch action {
+		case ScaleUpAction:
+			scaleUpActions.Inc()
+		case ScaleDownAction:
+			scaleDownActions.Inc()
+		}
+
 		if action != DoNothing {
 			resourceOptimizerProfile.Status.LastAction = &optimizerv1.ActionDetail{
 				Type:      action,
@@ -178,6 +210,13 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 		if err := r.executeResizeAction(ctx, &resourceOptimizerProfile, action, value); err != nil {
 			logger.Error(err, "error executing resize action")
 			return ctrl.Result{}, err
+		}
+
+		switch action {
+		case ResizeUpAction:
+			resizeUpActions.Inc()
+		case ResizeDownAction:
+			resizeDownActions.Inc()
 		}
 
 		if action != DoNothing {

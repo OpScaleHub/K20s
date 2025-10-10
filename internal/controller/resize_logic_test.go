@@ -128,4 +128,35 @@ var _ = Describe("Resize Logic", func() {
 			Expect(newRequest.String()).To(Equal("1")) // 1000m is represented as "1"
 		})
 	})
+
+	Context("When a scale action was recently performed", func() {
+		It("should respect the cooldown period and not perform another action", func() {
+			// 1. Set a recent LastAction status on the profile to simulate a recent action
+			profile.Status.LastAction = &optimizerv1.ActionDetail{
+				Type:      ResizeUpAction,
+				Timestamp: metav1.Now(), // Action happened right now
+			}
+			Expect(k8sClient.Status().Update(context.Background(), profile)).To(Succeed())
+
+			// 2. Simulate high CPU usage that would normally trigger another resize
+			mockAPI := &mockPrometheusAPI{result: model.Vector{{Value: 95}}}
+			reconciler = &ResourceOptimizerProfileReconciler{Client: k8sClient, Scheme: k8sClient.Scheme(), PrometheusAPI: mockAPI}
+
+			// 3. Reconcile
+			result, err := reconciler.Reconcile(context.Background(), reconcile.Request{NamespacedName: types.NamespacedName{Name: profile.Name, Namespace: profile.Namespace}})
+			Expect(err).NotTo(HaveOccurred())
+
+			// 4. Assert that no resize happened because of the cooldown
+			updatedDeployment := &appsv1.Deployment{}
+			Expect(k8sClient.Get(context.Background(), types.NamespacedName{Name: appName, Namespace: testNamespace}, updatedDeployment)).To(Succeed())
+
+			// The request should be unchanged from the initial 500m
+			currentRequest := updatedDeployment.Spec.Template.Spec.Containers[0].Resources.Requests[corev1.ResourceCPU]
+			Expect(currentRequest.String()).To(Equal("500m"))
+
+			// 5. Assert that we are requeueing for the remainder of the cooldown period
+			Expect(result.RequeueAfter).To(BeNumerically(">", 0))
+			Expect(result.RequeueAfter).To(BeNumerically("<=", 5*time.Minute))
+		})
+	})
 })
