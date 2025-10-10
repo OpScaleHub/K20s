@@ -1,0 +1,51 @@
+
+# .goreleaser.yml
+version: 2
+project_name: k20s
+
+builds:
+  - id: k20s
+    main: ./cmd/main.go
+    binary: manager
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/k20s:{{ .Version }}"
+      - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/k20s:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--platform=linux/arm64"
+    ids:
+      - k20s
+
+release:
+  github:
+    owner: {{ .Env.GITHUB_REPOSITORY_OWNER }}
+    name: k20s
+  draft: false
+  prerelease: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+helm_charts:
+  - name: k20s
+    repository:
+      owner: {{ .Env.GITHUB_REPOSITORY_OWNER }}
+      name: k20s-charts
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    path: charts/k20s
+    version: "{{ .Version }}"
+    app_version: "{{ .Version }}"
