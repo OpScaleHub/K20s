@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,13 +43,36 @@ type ResourceOptimizerProfileSpec struct {
 
 	// +kubebuilder:validation:Enum=Scale;Resize;Recommend
 	OptimizationPolicy string `json:"optimizationPolicy"`
+
+	// CooldownPeriod is the duration the controller will wait before taking another scaling action.
+	// Defaults to 5 minutes if not specified.
+	// +optional
+	// +kubebuilder:validation:Type=string
+	CooldownPeriod *metav1.Duration `json:"cooldownPeriod,omitempty"`
+
+	// MinCPU is the minimum CPU request that can be set by the Resize policy.
+	// +optional
+	MinCPU *resource.Quantity `json:"minCPU,omitempty"`
+
+	// MaxCPU is the maximum CPU request that can be set by the Resize policy.
+	// +optional
+	MaxCPU *resource.Quantity `json:"maxCPU,omitempty"`
+}
+
+// ActionDetail records the details of the last action taken by the controller.
+type ActionDetail struct {
+	Type      string      `json:"type"`
+	Timestamp metav1.Time `json:"timestamp"`
+	// +optional
+	Details string `json:"details,omitempty"`
 }
 
 // ResourceOptimizerProfileStatus defines the observed state of ResourceOptimizerProfile.
 type ResourceOptimizerProfileStatus struct {
 	ObservedMetrics map[string]string `json:"observedMetrics,omitempty"`
-	LastAction      string            `json:"lastAction,omitempty"`
-	Recommendations []string          `json:"recommendations,omitempty"`
+	// +optional
+	LastAction      *ActionDetail `json:"lastAction,omitempty"`
+	Recommendations []string      `json:"recommendations,omitempty"`
 	// +listType=map
 	// +listMapKey=type
 	// +optional

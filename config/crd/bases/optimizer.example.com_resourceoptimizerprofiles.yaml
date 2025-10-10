@@ -41,6 +41,11 @@ spec:
             description: ResourceOptimizerProfileSpec defines the desired state of
               ResourceOptimizerProfile
             properties:
+              cooldownPeriod:
+                description: |-
+                  CooldownPeriod is the duration the controller will wait before taking another scaling action.
+                  Defaults to 5 minutes if not specified.
+                type: string
               cpuThresholds:
                 description: ThresholdSpec defines the thresholds for a resource.
                 properties:
@@ -58,6 +63,22 @@ spec:
                 - max
                 - min
                 type: object
+              maxCPU:
+                anyOf:
+                - type: integer
+                - type: string
+                description: MaxCPU is the maximum CPU request that can be set by
+                  the Resize policy.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+              minCPU:
+                anyOf:
+                - type: integer
+                - type: string
+                description: MinCPU is the minimum CPU request that can be set by
+                  the Resize policy.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               optimizationPolicy:
                 enum:
                 - Scale
@@ -182,7 +203,20 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               lastAction:
-                type: string
+                description: ActionDetail records the details of the last action taken
+                  by the controller.
+                properties:
+                  details:
+                    type: string
+                  timestamp:
+                    format: date-time
+                    type: string
+                  type:
+                    type: string
+                required:
+                - timestamp
+                - type
+                type: object
               observedMetrics:
                 additionalProperties:
                   type: string
