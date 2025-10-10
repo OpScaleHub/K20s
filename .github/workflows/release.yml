@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # for release notes generation
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup yq
+        uses: mikefarah/yq@v4.44.2
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get release version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update Chart.yaml and kustomization.yaml with release version
+        run: |
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          # Update Chart.yaml
+          yq -i ".version = \"$VERSION\" | .appVersion = \"$VERSION\"" charts/k20s/Chart.yaml
+          # Update kustomization.yaml
+          yq -i ".images[0].newTag = \"$VERSION\"" config/manager/kustomization.yaml
+          # Update image name in skaffold.yaml for consistency
+          yq -i ".build.artifacts[0].image = \"ghcr.io/${{ github.repository }}\"" skaffold.yaml
+
+      - name: Build and push controller image
+        run: |
+          make docker-buildx-push IMG="ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Generate Kubernetes manifests
+        run: |
+          make manifests
+          cp config/crd/bases/* charts/k20s/templates/
+          kustomize build config/default > charts/k20s/templates/release.yaml
+
+      - name: Package Helm chart
+        run: |
+          helm package charts/k20s
+
+      - name: Generate release notes
+        id: release_notes
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+          publish: false
+          version: ${{ steps.get_version.outputs.VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: ${{ steps.release_notes.outputs.body }}
+          files: |
+            k20s-*.tgz
+          draft: false
+          prerelease: false
+
+      - name: Publish Helm chart to GitHub Pages
+        uses: stefanprodan/helm-gh-pages@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          charts_dir: .
+          charts_url: https://${{ github.repository_owner }}.github.io/K20s
+          owner: ${{ github.repository_owner }}
+          repository: K20s
+          branch: gh-pages
+          target_dir: .
+          commit_message: "Publish Helm chart for ${{ steps.get_version.outputs.VERSION }}"
