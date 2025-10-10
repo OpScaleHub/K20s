@@ -45,11 +45,17 @@ const (
 	DoNothing        = "DoNothing"
 )
 
+// PrometheusClient defines the interface for a Prometheus API client.
+// This simplifies testing by allowing us to mock only the methods we use.
+type PrometheusClient interface {
+	Query(ctx context.Context, query string, ts time.Time, opts ...prometheusv1.Option) (model.Value, prometheusv1.Warnings, error)
+}
+
 // ResourceOptimizerProfileReconciler reconciles a ResourceOptimizerProfile object
 type ResourceOptimizerProfileReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
-	PrometheusAPI prometheusv1.API
+	PrometheusAPI PrometheusClient
 }
 
 // +kubebuilder:rbac:groups=optimizer.example.com,resources=resourceoptimizerprofiles,verbs=get;list;watch;create;update;patch;delete

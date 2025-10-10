@@ -34,7 +34,7 @@ func buildPromQL(profile *optimizerv1.ResourceOptimizerProfile) (string, error) 
 	return query, nil
 }
 
-func executePromQL(ctx context.Context, promAPI prometheusv1.API, query string) (model.Value, error) {
+func executePromQL(ctx context.Context, promAPI PrometheusClient, query string) (model.Value, error) {
 	result, warnings, err := promAPI.Query(ctx, query, time.Now())
 	if err != nil {
 		return nil, err
