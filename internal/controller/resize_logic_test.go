@@ -1,5 +1,9 @@
 package controller
 
+// Note: The testing patterns used in this file for creating mock clients and
+// structuring Ginkgo tests may share similarities with patterns found in other
+// open-source Kubernetes operators, such as cloudfoundry-incubator/quarks-operator.
+
 import (
 	"context"
 	"time"
