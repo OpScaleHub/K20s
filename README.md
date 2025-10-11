@@ -5,6 +5,7 @@
 | **Project Name** | **K20s** |
 | **Primary Goal** | Develop a Kubernetes controller in Golang, using Kubebuilder, to perform "smart" workload autoscaling and rightsizing recommendations based on Prometheus-derived resource utilization metrics. |
 
+[![pages-build-deployment](https://github.com/OpScaleHub/K20s/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/OpScaleHub/K20s/actions/workflows/pages/pages-build-deployment)
 ---
 
 ## 1. Concept and Rationale
