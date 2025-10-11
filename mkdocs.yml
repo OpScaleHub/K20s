@@ -19,7 +19,8 @@ theme:
     - navigation.top
 
 nav:
-  - 'Home': 'index.md'
-  - 'Getting Started': 'getting-started.md'
-  - 'How to Use': 'how-to-use.md'
-  - 'API Reference': 'api-reference.md'
+  - 'Home': 'docs/index.md'
+  - 'Getting Started': 'docs/getting-started.md'
+  - 'How to Use': 'docs/how-to-use.md'
+  - 'API Reference': 'docs/api-reference.md'
+  - 'Development Guide': 'docs/development-guide.md'
