@@ -1,3 +1,6 @@
+# .github/workflows/release-please.yml
+# Automates versioning and CHANGELOG generation.
+
 name: Release Please
 
 on:
@@ -9,13 +12,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Release Please
-        id: release
-        uses: google-github-actions/release-please-action@v4
+      - uses: google-github-actions/release-please-action@v4
         with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-
-      - name: Checkout code
-        if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@v4
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: go
