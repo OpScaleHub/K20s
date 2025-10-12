@@ -42,6 +42,6 @@ jobs:
           # It will also automatically create a tag and a release on GitHub.
           # The version will be determined by the commits since the last tag.
           version: latest
-          args: release --clean
+          args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
