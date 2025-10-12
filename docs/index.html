@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +10,15 @@
     <style>
         /* Custom styles for background and font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
         html {
             scroll-behavior: smooth;
         }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117; /* Dark GitHub-like background */
+            background-color: #0d1117;
+            /* Dark GitHub-like background */
             color: #ffffff;
         }
 
@@ -22,6 +26,7 @@
         .k20s-gradient {
             background: linear-gradient(90deg, #1d4ed8, #0ea5e9, #38bdf8);
         }
+
         .k20s-gradient-text {
             background-clip: text;
             -webkit-background-clip: text;
@@ -32,7 +37,7 @@
         .glow-effect {
             box-shadow: 0 0 50px rgba(30, 136, 229, 0.3), inset 0 0 10px rgba(30, 136, 229, 0.1);
         }
-        
+
         /* Style for code blocks */
         pre {
             background-color: #161b22;
@@ -44,17 +49,21 @@
             font-size: 0.875rem;
             line-height: 1.5;
         }
+
         code {
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
         }
+
         .code-line {
             display: block;
         }
+
         .code-comment {
             color: #8b949e;
         }
     </style>
 </head>
+
 <body class="min-h-screen antialiased">
 
     <!-- Header & Navigation -->
@@ -65,8 +74,33 @@
                 <a href="#features" class="text-gray-300 hover:text-white transition">Features</a>
                 <a href="#installation" class="text-gray-300 hover:text-white transition">Installation</a>
                 <a href="#usage" class="text-gray-300 hover:text-white transition">Usage</a>
+                <div class="relative group">
+                    <button class="text-gray-300 hover:text-white transition flex items-center space-x-1">
+                        <span>Docs</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+                    <div
+                        class="absolute hidden group-hover:block bg-gray-800 text-left rounded-md shadow-lg py-2 w-48 mt-2 border border-gray-700">
+                        <!-- LINK 1: Overview -->
+                        <a href="./generated/index.html" target="_blank" rel="noopener noreferrer"
+                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Overview</a>
+                        <!-- LINK 2: API Reference -->
+                        <a href="./generated/api-reference/index.html" target="_blank" rel="noopener noreferrer"
+                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">API
+                            Reference</a>
+                        <!-- LINK 3: Makefile Help -->
+                        <a href="./generated/make-help/index.html" target="_blank" rel="noopener noreferrer"
+                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Makefile
+                            Help</a>
+                    </div>
+                </div>
             </nav>
-            <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer" class="px-5 py-2 text-sm font-semibold rounded-full k20s-gradient hover:opacity-90 transition duration-300">
+            <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer"
+                class="px-5 py-2 text-sm font-semibold rounded-full k20s-gradient hover:opacity-90 transition duration-300">
                 View on GitHub
             </a>
         </div>
@@ -82,16 +116,21 @@
                         <span class="k20s-gradient-text">Smart</span> Kubernetes Autoscaling.
                     </h1>
                 </div>
-                
+
                 <p class="mt-8 text-xl sm:text-2xl text-gray-400 max-w-3xl mx-auto">
-                    K20s is a smart Kubernetes controller that provides <strong>sophisticated, policy-driven workload autoscaling and rightsizing.</strong>
+                    K20s is a smart Kubernetes controller that provides <strong>sophisticated, policy-driven workload
+                        autoscaling and rightsizing.</strong>
                 </p>
-                
+
                 <div class="mt-12 space-x-4">
-                    <a href="#installation" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg k20s-gradient hover:ring-4 ring-blue-500/50 transition duration-300 transform hover:scale-105">
+                    <!-- CTA 1: Get Started (Link to Main Docs) -->
+                    <a href="./generated/index.html"
+                        class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg k20s-gradient hover:ring-4 ring-blue-500/50 transition duration-300 transform hover:scale-105">
                         Get Started
                     </a>
-                    <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-8 py-3 border border-gray-700 text-base font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700 transition duration-300">
+                    <!-- CTA 2: Secondary link -->
+                    <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center justify-center px-8 py-3 border border-gray-700 text-base font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700 transition duration-300">
                         View on GitHub
                     </a>
                 </div>
@@ -107,11 +146,16 @@
                             Beyond the HPA: Stable, Predictive Scaling
                         </h2>
                         <p class="text-lg text-gray-400 leading-relaxed">
-                            Unlike the native Horizontal Pod Autoscaler (HPA), K20s leverages long-term, <strong>historical data from Prometheus</strong> to make more intelligent and stable scaling decisions. 
+                            Unlike the native Horizontal Pod Autoscaler (HPA), K20s leverages long-term,
+                            <strong>historical data from Prometheus</strong> to make more intelligent and stable scaling
+                            decisions.
                             We eliminate the jerky, oscillatory scaling based on momentary spikes.
                         </p>
                         <p class="mt-4 text-lg text-gray-400 leading-relaxed">
-                            It introduces the <code class="text-sky-400 bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource, allowing you to declaratively define powerful optimization policies for every application in your cluster.
+                            It introduces the <code
+                                class="text-sky-400 bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom
+                            Resource, allowing you to declaratively define powerful optimization policies for every
+                            application in your cluster.
                         </p>
                     </div>
                     <!-- Mock diagram/visual element -->
@@ -121,8 +165,10 @@
                             <!-- Jerky HPA line (Red) -->
                             <div class="absolute w-full h-full border-b border-gray-600"></div>
                             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                <path d="M0,80 C15,20 30,90 45,10 C60,70 75,30 100,50" stroke="#ef4444" stroke-width="1.5" fill="none" class="animate-pulse opacity-70" />
-                                <path d="M0,60 C25,50 50,75 75,65 100,60" stroke="#38bdf8" stroke-width="2" fill="none" />
+                                <path d="M0,80 C15,20 30,90 45,10 C60,70 75,30 100,50" stroke="#ef4444"
+                                    stroke-width="1.5" fill="none" class="animate-pulse opacity-70" />
+                                <path d="M0,60 C25,50 50,75 75,65 100,60" stroke="#38bdf8" stroke-width="2"
+                                    fill="none" />
                             </svg>
                             <div class="absolute top-0 left-0 text-xs text-red-400">HPA (Jerky)</div>
                             <div class="absolute bottom-0 right-0 text-xs text-sky-400">K20s (Stable)</div>
@@ -138,78 +184,117 @@
                 <h2 class="text-4xl font-bold text-center mb-16">
                     Optimization, Elevated.
                 </h2>
-                
+
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
                     <!-- Feature 1: Policy-Driven Optimization -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for Policy -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.047m17.236 0c.26.175.467.433.607.728.324.675.257 1.488-.184 2.1l-6.52 9.314c-.16.228-.387.42-.647.568-.13.072-.27.133-.41.182-.2.07-.406.12-.618.148h-.028a2 2 0 01-1.722 0c-.212-.028-.418-.078-.618-.148a2.12 2.12 0 01-.41-.182l-6.52-9.314c-.44-.612-.507-1.425-.183-2.1.14-.295.347-.553.607-.728m17.236 0L12 12m0-10l6.618 4.016"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.047m17.236 0c.26.175.467.433.607.728.324.675.257 1.488-.184 2.1l-6.52 9.314c-.16.228-.387.42-.647.568-.13.072-.27.133-.41.182-.2.07-.406.12-.618.148h-.028a2 2 0 01-1.722 0c-.212-.028-.418-.078-.618-.148a2.12 2.12 0 01-.41-.182l-6.52-9.314c-.44-.612-.507-1.425-.183-2.1.14-.295.347-.553.607-.728m17.236 0L12 12m0-10l6.618 4.016">
+                                </path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Policy-Driven Optimization</h3>
                         <p class="text-gray-400">
-                            Choose between <code class="text-sky-300">Scale</code>, <code class="text-sky-300">Resize</code>, and <code class="text-sky-300">Recommend</code> policies to declaratively control exactly how your workloads are optimized.
+                            Choose between <code class="text-sky-300">Scale</code>, <code
+                                class="text-sky-300">Resize</code>, and <code class="text-sky-300">Recommend</code>
+                            policies to declaratively control exactly how your workloads are optimized.
                         </p>
                     </div>
 
                     <!-- Feature 2: Historical Data Analysis -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for History/Prometheus -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Historical Data Analysis</h3>
                         <p class="text-gray-400">
-                            Integrates directly with <strong>Prometheus</strong> to analyze resource utilization over extended periods, providing deep context for stable rightsizing.
+                            Integrates directly with <strong>Prometheus</strong> to analyze resource utilization over
+                            extended periods, providing deep context for stable rightsizing.
                         </p>
                     </div>
-                    
+
                     <!-- Feature 3: Configurable Thresholds -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for Thresholds/Goldilocks -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Configurable "Goldilocks Zone"</h3>
                         <p class="text-gray-400">
-                            Define your ideal CPU utilization ranges to keep applications performant while maximizing cost-effectiveness—not too hot, not too cold, just right.
+                            Define your ideal CPU utilization ranges to keep applications performant while maximizing
+                            cost-effectiveness—not too hot, not too cold, just right.
                         </p>
                     </div>
 
                     <!-- Feature 4: Built-in Safety -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for Safety/Shield -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.047m17.236 0c.26.175.467.433.607.728.324.675.257 1.488-.184 2.1l-6.52 9.314c-.16.228-.387.42-.647.568-.13.072-.27.133-.41.182-.2.07-.406.12-.618.148h-.028a2 2 0 01-1.722 0c-.212-.028-.418-.078-.618-.148a2.12 2.12 0 01-.41-.182l-6.52-9.314c-.44-.612-.507-1.425-.183-2.1.14-.295.347-.553.607-.728m17.236 0L12 12m0-10l6.618 4.016"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.047m17.236 0c.26.175.467.433.607.728.324.675.257 1.488-.184 2.1l-6.52 9.314c-.16.228-.387.42-.647.568-.13.072-.27.133-.41.182-.2.07-.406.12-.618.148h-.028a2 2 0 01-1.722 0c-.212-.028-.418-.078-.618-.148a2.12 2.12 0 01-.41-.182l-6.52-9.314c-.44-.612-.507-1.425-.183-2.1.14-.295.347-.553.607-.728m17.236 0L12 12m0-10l6.618 4.016">
+                                </path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Built-in Stability & Safety</h3>
                         <p class="text-gray-400">
-                            Features like <strong>cooldown periods</strong> and explicit min/max boundaries prevent oscillatory scaling and ensure your cluster remains stable and predictable.
+                            Features like <strong>cooldown periods</strong> and explicit min/max boundaries prevent
+                            oscillatory scaling and ensure your cluster remains stable and predictable.
                         </p>
                     </div>
 
                     <!-- Feature 5: Simple Observability -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for Observability/Dashboard -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Clear Observability</h3>
                         <p class="text-gray-400">
-                            A built-in status dashboard and custom Prometheus metrics give you a clear, transparent view of every decision the controller makes.
+                            A built-in status dashboard and custom Prometheus metrics give you a clear, transparent view
+                            of every decision the controller makes.
                         </p>
                     </div>
-                    
+
                     <!-- Feature 6: CRD Integration -->
-                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
+                    <div
+                        class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
                             <!-- Icon for Integration/Code -->
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Native Kubernetes Experience</h3>
                         <p class="text-gray-400">
-                            Configure scaling policies directly through Kubernetes Custom Resources—just use <code class="text-sky-300">kubectl</code> and YAML.
+                            Configure scaling policies directly through Kubernetes Custom Resources—just use <code
+                                class="text-sky-300">kubectl</code> and YAML.
                         </p>
                     </div>
                 </div>
@@ -228,10 +313,18 @@
                             <li><code class="bg-gray-800 p-1 rounded">kubectl</code> installed and configured.</li>
                             <li>Prometheus installed in the cluster and accessible via a service.</li>
                         </ul>
+                        <p class="text-sm mt-4 text-gray-500">
+                            For detailed setup instructions, including using <code
+                                class="bg-gray-800 p-1 rounded">make install</code>, see the <a
+                                href="./generated/make-help/index.html" class="text-sky-400 hover:text-sky-300">Makefile
+                                Help Documentation</a>.
+                        </p>
                     </div>
                     <div>
                         <h3 class="text-2xl font-semibold mb-4 text-sky-400">1. Install the CRD</h3>
-                        <p class="text-lg text-gray-400 mb-4">Apply the <code class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource Definition to your cluster.</p>
+                        <p class="text-lg text-gray-400 mb-4">Apply the <code
+                                class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource
+                            Definition to your cluster.</p>
                         <pre><code class="language-bash">kubectl apply -f config/crd/bases/optimizer.example.com_resourceoptimizerprofiles.yaml</code></pre>
                     </div>
                     <div>
@@ -241,7 +334,8 @@
                     </div>
                     <div>
                         <h3 class="text-2xl font-semibold mb-4 text-sky-400">3. Verify the Installation</h3>
-                        <p class="text-lg text-gray-400 mb-4">Check that the controller pod is running in the <code class="bg-gray-800 p-1 rounded">k20s-system</code> namespace.</p>
+                        <p class="text-lg text-gray-400 mb-4">Check that the controller pod is running in the <code
+                                class="bg-gray-800 p-1 rounded">k20s-system</code> namespace.</p>
                         <pre><code class="language-bash">kubectl get pods -n k20s-system</code></pre>
                     </div>
                 </div>
@@ -254,17 +348,23 @@
                 <h2 class="text-4xl font-bold text-center mb-12">How to Use K20s</h2>
                 <div class="text-lg text-gray-400 space-y-6">
                     <p>
-                        K20s is configured using the <code class="text-sky-400 bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource. This allows you to define your scaling and optimization strategies declaratively, right alongside your other Kubernetes manifests.
+                        K20s is configured using the <code
+                            class="text-sky-400 bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom
+                        Resource. This allows you to define your scaling and optimization strategies declaratively,
+                        right alongside your other Kubernetes manifests.
                     </p>
                     <p>
-                        Create a YAML file for your profile, specifying the target workloads via a label selector, your desired CPU utilization thresholds, and the optimization policy to apply.
+                        Create a YAML file for your profile, specifying the target workloads via a label selector, your
+                        desired CPU utilization thresholds, and the optimization policy to apply.
                     </p>
                 </div>
 
                 <div class="mt-12">
                     <h3 class="text-2xl font-semibold mb-4 text-sky-400">Example Profile</h3>
                     <p class="text-lg text-gray-400 mb-4">
-                        This profile targets any deployment with the label <code class="bg-gray-800 p-1 rounded">app: sample-app</code>. It will attempt to keep the average CPU utilization between 30% and 75% by scaling the number of replicas up or down.
+                        This profile targets any deployment with the label <code
+                            class="bg-gray-800 p-1 rounded">app: sample-app</code>. It will attempt to keep the average
+                        CPU utilization between 30% and 75% by scaling the number of replicas up or down.
                     </p>
                     <pre><code class="language-yaml"><span class="code-line"><span class="code-comment"># sample-profile.yaml</span></span>
 <span class="code-line">apiVersion: optimizer.example.com/v1</span>
@@ -282,9 +382,15 @@
 </code></pre>
                 </div>
                 <div class="mt-8">
-                     <p class="text-lg text-gray-400 mb-4">Apply the profile to your cluster:</p>
-                     <pre><code class="language-bash">kubectl apply -f sample-profile.yaml</code></pre>
+                    <p class="text-lg text-gray-400 mb-4">Apply the profile to your cluster:</p>
+                    <pre><code class="language-bash">kubectl apply -f sample-profile.yaml</code></pre>
                 </div>
+                <p class="text-sm mt-8 text-gray-500 text-center">
+                    For a complete reference of the <code
+                        class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> fields, check the <a
+                        href="./generated/api-reference/index.html" class="text-sky-400 hover:text-sky-300">API
+                        Reference Documentation</a>.
+                </p>
             </div>
         </section>
 
@@ -297,7 +403,9 @@
                 <p class="text-xl text-gray-400 mb-8">
                     Get started by deploying the controller and creating your first optimization profile.
                 </p>
-                <a href="#installation" class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-full shadow-2xl k20s-gradient hover:ring-8 ring-blue-500/30 transition duration-500 transform hover:scale-105">
+                <!-- CTA: Deploy K20s Now (Link to Main Docs) -->
+                <a href="./generated/index.html"
+                    class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-full shadow-2xl k20s-gradient hover:ring-8 ring-blue-500/30 transition duration-500 transform hover:scale-105">
                     Deploy K20s Now
                 </a>
             </div>
@@ -306,10 +414,25 @@
 
     <!-- Footer -->
     <footer class="py-8 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-            © 2024 K20s. All rights reserved. | <a href="#" class="hover:text-sky-400">Privacy Policy</a> | <a href="#" class="hover:text-sky-400">Terms of Service</a>
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 space-y-2 sm:space-y-0 sm:space-x-4">
+            <span>© 2024 K20s. All rights reserved.</span>
+            <span class="hidden sm:inline">|</span>
+            <!-- LINK: Overview -->
+            <a href="./generated/index.html" class="hover:text-sky-400">Documentation Overview</a>
+            <span class="hidden sm:inline">|</span>
+            <!-- LINK: API Reference -->
+            <a href="./generated/api-reference/index.html" class="hover:text-sky-400">API Reference</a>
+            <span class="hidden sm:inline">|</span>
+            <!-- LINK: Makefile Help -->
+            <a href="./generated/make-help/index.html" class="hover:text-sky-400">Installation Guide</a>
+            <span class="hidden sm:inline">|</span>
+            <a href="#" class="hover:text-sky-400">Privacy Policy</a>
+            <span class="hidden sm:inline">|</span>
+            <a href="#" class="hover:text-sky-400">Terms of Service</a>
         </div>
     </footer>
 
 </body>
+
 </html>
