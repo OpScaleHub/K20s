@@ -108,7 +108,7 @@ func main() {
 		WebhookServer:          webs,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "f8c0d2a.example.com",
+		LeaderElectionID:       "f8c0d2a.k20s.opscale.ir",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -203,7 +203,7 @@ const statusPageTemplate = `
 
 func (h *StatusPageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	logger := ctrl.Log.WithName("status-handler")
+	logger := ctrl.Log.WithName("status-page-handler")
 
 	var profiles optimizerv1.ResourceOptimizerProfileList
 	if err := h.Client.List(ctx, &profiles); err != nil {

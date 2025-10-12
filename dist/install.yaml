@@ -12,9 +12,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: resourceoptimizerprofiles.optimizer.example.com
+  name: resourceoptimizerprofiles.optimizer.k20s.opscale.ir
 spec:
-  group: optimizer.example.com
+  group: optimizer.k20s.opscale.ir
   names:
     kind: ResourceOptimizerProfile
     listKind: ResourceOptimizerProfileList
@@ -174,7 +174,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      description: type of condition in CamelCase or in foo.k20s.opscale.ir/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
@@ -272,7 +272,7 @@ rules:
   - patch
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles
   verbs:
@@ -284,13 +284,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/finalizers
   verbs:
   - update
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/status
   verbs:
@@ -335,13 +335,13 @@ metadata:
   name: k20s-resourceoptimizerprofile-admin-role
 rules:
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles
   verbs:
   - '*'
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/status
   verbs:
@@ -356,7 +356,7 @@ metadata:
   name: k20s-resourceoptimizerprofile-editor-role
 rules:
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles
   verbs:
@@ -368,7 +368,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/status
   verbs:
@@ -383,7 +383,7 @@ metadata:
   name: k20s-resourceoptimizerprofile-viewer-role
 rules:
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles
   verbs:
@@ -391,7 +391,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/status
   verbs:
