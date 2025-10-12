@@ -9,6 +9,9 @@
     <style>
         /* Custom styles for background and font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0d1117; /* Dark GitHub-like background */
@@ -29,16 +32,42 @@
         .glow-effect {
             box-shadow: 0 0 50px rgba(30, 136, 229, 0.3), inset 0 0 10px rgba(30, 136, 229, 0.1);
         }
+        
+        /* Style for code blocks */
+        pre {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+        .code-line {
+            display: block;
+        }
+        .code-comment {
+            color: #8b949e;
+        }
     </style>
 </head>
 <body class="min-h-screen antialiased">
 
     <!-- Header & Navigation -->
-    <header class="py-6 border-b border-gray-800">
+    <header class="py-6 border-b border-gray-800 sticky top-0 bg-gray-900/50 backdrop-blur-lg z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <div class="text-2xl font-extrabold k20s-gradient-text">K20s</div>
-            <a href="#" class="px-5 py-2 text-sm font-semibold rounded-full k20s-gradient hover:opacity-90 transition duration-300">
-                Documentation
+            <nav class="hidden sm:flex items-center space-x-8">
+                <a href="#features" class="text-gray-300 hover:text-white transition">Features</a>
+                <a href="#installation" class="text-gray-300 hover:text-white transition">Installation</a>
+                <a href="#usage" class="text-gray-300 hover:text-white transition">Usage</a>
+            </nav>
+            <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer" class="px-5 py-2 text-sm font-semibold rounded-full k20s-gradient hover:opacity-90 transition duration-300">
+                View on GitHub
             </a>
         </div>
     </header>
@@ -59,10 +88,10 @@
                 </p>
                 
                 <div class="mt-12 space-x-4">
-                    <a href="#" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg k20s-gradient hover:ring-4 ring-blue-500/50 transition duration-300 transform hover:scale-105">
+                    <a href="#installation" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg k20s-gradient hover:ring-4 ring-blue-500/50 transition duration-300 transform hover:scale-105">
                         Get Started
                     </a>
-                    <a href="#" class="inline-flex items-center justify-center px-8 py-3 border border-gray-700 text-base font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700 transition duration-300">
+                    <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-8 py-3 border border-gray-700 text-base font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700 transition duration-300">
                         View on GitHub
                     </a>
                 </div>
@@ -104,7 +133,7 @@
         </section>
 
         <!-- Key Features Section -->
-        <section class="py-16 sm:py-24">
+        <section id="features" class="py-16 sm:py-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-4xl font-bold text-center mb-16">
                     Optimization, Elevated.
@@ -187,16 +216,88 @@
             </div>
         </section>
 
+        <!-- Installation Section -->
+        <section id="installation" class="py-16 sm:py-24 bg-gray-900 border-t border-gray-800">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-bold text-center mb-12">Installation</h2>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">Prerequisites</h3>
+                        <ul class="list-disc list-inside text-lg text-gray-400 space-y-2">
+                            <li>A running Kubernetes cluster.</li>
+                            <li><code class="bg-gray-800 p-1 rounded">kubectl</code> installed and configured.</li>
+                            <li>Prometheus installed in the cluster and accessible via a service.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">1. Install the CRD</h3>
+                        <p class="text-lg text-gray-400 mb-4">Apply the <code class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource Definition to your cluster.</p>
+                        <pre><code class="language-bash">kubectl apply -f config/crd/bases/optimizer.example.com_resourceoptimizerprofiles.yaml</code></pre>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">2. Deploy the Controller</h3>
+                        <p class="text-lg text-gray-400 mb-4">Deploy the K20s controller manager into your cluster.</p>
+                        <pre><code class="language-bash">kubectl apply -f manifests/deployment.yaml</code></pre>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">3. Verify the Installation</h3>
+                        <p class="text-lg text-gray-400 mb-4">Check that the controller pod is running in the <code class="bg-gray-800 p-1 rounded">k20s-system</code> namespace.</p>
+                        <pre><code class="language-bash">kubectl get pods -n k20s-system</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage Section -->
+        <section id="usage" class="py-16 sm:py-24 border-t border-b border-gray-800">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-bold text-center mb-12">How to Use K20s</h2>
+                <div class="text-lg text-gray-400 space-y-6">
+                    <p>
+                        K20s is configured using the <code class="text-sky-400 bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource. This allows you to define your scaling and optimization strategies declaratively, right alongside your other Kubernetes manifests.
+                    </p>
+                    <p>
+                        Create a YAML file for your profile, specifying the target workloads via a label selector, your desired CPU utilization thresholds, and the optimization policy to apply.
+                    </p>
+                </div>
+
+                <div class="mt-12">
+                    <h3 class="text-2xl font-semibold mb-4 text-sky-400">Example Profile</h3>
+                    <p class="text-lg text-gray-400 mb-4">
+                        This profile targets any deployment with the label <code class="bg-gray-800 p-1 rounded">app: sample-app</code>. It will attempt to keep the average CPU utilization between 30% and 75% by scaling the number of replicas up or down.
+                    </p>
+                    <pre><code class="language-yaml"><span class="code-line"><span class="code-comment"># sample-profile.yaml</span></span>
+<span class="code-line">apiVersion: optimizer.example.com/v1</span>
+<span class="code-line">kind: ResourceOptimizerProfile</span>
+<span class="code-line">metadata:</span>
+<span class="code-line">  name: sample-app-optimizer</span>
+<span class="code-line">spec:</span>
+<span class="code-line">  selector:</span>
+<span class="code-line">    matchLabels:</span>
+<span class="code-line">      app: sample-app</span>
+<span class="code-line">  cpuThresholds:</span>
+<span class="code-line">    minPercent: 30</span>
+<span class="code-line">    maxPercent: 75</span>
+<span class="code-line">  optimizationPolicy: Scale</span>
+</code></pre>
+                </div>
+                <div class="mt-8">
+                     <p class="text-lg text-gray-400 mb-4">Apply the profile to your cluster:</p>
+                     <pre><code class="language-bash">kubectl apply -f sample-profile.yaml</code></pre>
+                </div>
+            </div>
+        </section>
+
         <!-- CTA Section -->
-        <section class="py-16 bg-gray-900 border-t border-gray-800">
+        <section class="py-16 bg-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 class="text-3xl sm:text-4xl font-bold mb-4">
                     Ready to Optimize Your Fleet?
                 </h2>
                 <p class="text-xl text-gray-400 mb-8">
-                    Get started by learning how to deploy the controller and use it to fully optimize your Kubernetes workloads.
+                    Get started by deploying the controller and creating your first optimization profile.
                 </p>
-                <a href="#" class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-full shadow-2xl k20s-gradient hover:ring-8 ring-blue-500/30 transition duration-500 transform hover:scale-105">
+                <a href="#installation" class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-full shadow-2xl k20s-gradient hover:ring-8 ring-blue-500/30 transition duration-500 transform hover:scale-105">
                     Deploy K20s Now
                 </a>
             </div>
