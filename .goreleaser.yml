@@ -39,13 +39,3 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-
-helm_charts:
-  - name: k20s
-    repository:
-      owner: {{ .Env.GITHUB_REPOSITORY_OWNER }}
-      name: k20s-charts
-      token: "{{ .Env.GITHUB_TOKEN }}"
-    path: charts/k20s
-    version: "{{ .Version }}"
-    app_version: "{{ .Version }}"
