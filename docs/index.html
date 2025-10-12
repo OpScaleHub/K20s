@@ -321,19 +321,18 @@
                         </p>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">1. Install the CRD</h3>
-                        <p class="text-lg text-gray-400 mb-4">Apply the <code
-                                class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> Custom Resource
-                            Definition to your cluster.</p>
-                        <pre><code class="language-bash">kubectl apply -f config/crd/bases/optimizer.example.com_resourceoptimizerprofiles.yaml</code></pre>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">1. Install the Controller</h3>
+                        <p class="text-lg text-gray-400 mb-4">
+                            Run the following command to install the controller, CRD, and all necessary resources.
+                            Replace <code class="bg-gray-800 p-1 rounded">vX.Y.Z</code> with the desired version from
+                            the <a href="https://github.com/OpScaleHub/K20s/releases" target="_blank"
+                                rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300">GitHub Releases</a>
+                            page.
+                        </p>
+                        <pre><code class="language-bash">kubectl apply -f https://github.com/OpScaleHub/K20s/releases/download/vX.Y.Z/install.yaml</code></pre>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">2. Deploy the Controller</h3>
-                        <p class="text-lg text-gray-400 mb-4">Deploy the K20s controller manager into your cluster.</p>
-                        <pre><code class="language-bash">kubectl apply -f manifests/deployment.yaml</code></pre>
-                    </div>
-                    <div>
-                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">3. Verify the Installation</h3>
+                        <h3 class="text-2xl font-semibold mb-4 text-sky-400">2. Verify the Installation</h3>
                         <p class="text-lg text-gray-400 mb-4">Check that the controller pod is running in the <code
                                 class="bg-gray-800 p-1 rounded">k20s-system</code> namespace.</p>
                         <pre><code class="language-bash">kubectl get pods -n k20s-system</code></pre>
