@@ -1,7 +1,15 @@
 site_name: K20s Documentation
 site_url: https://k20s.opscale.ir/
+site_description: "K20s: Smart, Policy-Driven Kubernetes Autoscaling"
 repo_url: https://github.com/OpScaleHub/K20s
 repo_name: OpScaleHub/K20s
+
+extra:
+  homepage: https://k20s.opscale.ir
+
+# The main page (index.md) will use your custom landing.html as a template
+extra_templates:
+  - landing.html
 
 theme:
   name: material
@@ -17,10 +25,12 @@ theme:
   features:
     - navigation.tabs
     - navigation.top
+    - content.code.copy
 
 nav:
-  - 'Home': 'docs/index.md'
-  - 'Getting Started': 'docs/getting-started.md'
-  - 'How to Use': 'docs/how-to-use.md'
-  - 'API Reference': 'docs/api-reference.md'
-  - 'Development Guide': 'docs/development-guide.md'
+  - Home: index.md
+  - Documentation:
+    - Getting Started: getting-started.md
+    - How to Use: how-to-use.md
+    - API Reference: api-reference.md
+    - Development Guide: development-guide.md
