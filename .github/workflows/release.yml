@@ -47,9 +47,19 @@ jobs:
       - name: Build and push multi-arch image via Makefile
         run: |
           make docker-buildx IMG=${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }} PLATFORMS=linux/amd64,linux/arm64
+
       - name: Push 'latest' tag
         run: |
           docker buildx imagetools create --tag ${{ env.IMAGE_NAME }}:latest ${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }}
+
+      - name: Generate single install manifest
+        run: |
+          # Update the kustomization to use the new tag
+          cd config/default
+          kustomize edit set image controller=${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }}
+          cd ../..
+          # Build the manifest
+          kustomize build config/default > dist/install.yaml
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -58,3 +68,5 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           generate_release_notes: true
+          files: |
+            dist/install.yaml
