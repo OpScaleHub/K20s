@@ -37,7 +37,7 @@ spec:
 # This profile will analyze the Nginx deployment and add a recommendation
 # to the status field, but it will NOT perform any actions.
 # This is the safest option to start with.
-apiVersion: optimizer.example.com/v1
+apiVersion: optimizer.k20s.opscale.ir/v1
 kind: ResourceOptimizerProfile
 metadata:
   name: my-nginx-recommend
@@ -54,7 +54,7 @@ spec:
 # Option B: "Scale" Policy
 # This profile will automatically scale the number of replicas for the
 # Nginx deployment up or down to keep CPU usage within the target range.
-# apiVersion: optimizer.example.com/v1
+# apiVersion: optimizer.k20s.opscale.ir/v1
 # kind: ResourceOptimizerProfile
 # metadata:
 #   name: my-nginx-scale
@@ -72,7 +72,7 @@ spec:
 # Option C: "Resize" Policy
 # This profile will automatically change the CPU requests of the Nginx
 # pods to keep usage within the target range. It includes safety rails.
-# apiVersion: optimizer.example.com/v1
+# apiVersion: optimizer.k20s.opscale.ir/v1
 # kind: ResourceOptimizerProfile
 # metadata:
 #   name: my-nginx-resize

@@ -15,7 +15,7 @@ rules:
   - patch
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles
   verbs:
@@ -27,13 +27,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/finalizers
   verbs:
   - update
 - apiGroups:
-  - optimizer.example.com
+  - optimizer.k20s.opscale.ir
   resources:
   - resourceoptimizerprofiles/status
   verbs:

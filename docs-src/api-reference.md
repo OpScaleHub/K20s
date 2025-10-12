@@ -12,10 +12,10 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0 # This will be updated by the make command
-  name: resourceoptimizerprofiles.optimizer.k20s.opscale.ir # Corrected CRD name
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: resourceoptimizerprofiles.optimizer.k20s.opscale.ir
 spec:
-  group: optimizer.k20s.opscale.ir # Corrected group name
+  group: optimizer.k20s.opscale.ir
   names:
     kind: ResourceOptimizerProfile
     listKind: ResourceOptimizerProfileList
@@ -196,7 +196,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: type of condition in CamelCase or in foo.k20s.opscale.ir/CamelCase.
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
@@ -242,3 +242,4 @@ spec:
       status: {}
 
 ```
+
