@@ -83,17 +83,16 @@
                             </path>
                         </svg>
                     </button>
+                    <!-- FIX: Removed mt-2 to prevent gap that broke hover focus -->
                     <div
-                        class="absolute hidden group-hover:block bg-gray-800 text-left rounded-md shadow-lg py-2 w-48 mt-2 border border-gray-700">
-                        <!-- LINK 1: Overview -->
-                        <a href="./generated/index.html" target="_blank" rel="noopener noreferrer"
+                        class="absolute hidden group-hover:block bg-gray-800 text-left rounded-md shadow-lg py-2 w-48 border border-gray-700">
+                        <!-- FIX: Removed './' prefix and target="_blank" for internal links -->
+                        <a href="generated/index.html" rel="noopener noreferrer"
                             class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Overview</a>
-                        <!-- LINK 2: API Reference -->
-                        <a href="./generated/api-reference/index.html" target="_blank" rel="noopener noreferrer"
+                        <a href="generated/api-reference/index.html" rel="noopener noreferrer"
                             class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">API
                             Reference</a>
-                        <!-- LINK 3: Makefile Help -->
-                        <a href="./generated/make-help/index.html" target="_blank" rel="noopener noreferrer"
+                        <a href="generated/make-help/index.html" rel="noopener noreferrer"
                             class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Makefile
                             Help</a>
                     </div>
@@ -123,12 +122,11 @@
                 </p>
 
                 <div class="mt-12 space-x-4">
-                    <!-- CTA 1: Get Started (Link to Main Docs) -->
-                    <a href="./generated/index.html"
+                    <!-- FIX: Removed './' prefix -->
+                    <a href="generated/index.html"
                         class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg k20s-gradient hover:ring-4 ring-blue-500/50 transition duration-300 transform hover:scale-105">
                         Get Started
                     </a>
-                    <!-- CTA 2: Secondary link -->
                     <a href="https://github.com/OpScaleHub/K20s" target="_blank" rel="noopener noreferrer"
                         class="inline-flex items-center justify-center px-8 py-3 border border-gray-700 text-base font-medium rounded-full text-gray-300 bg-gray-800 hover:bg-gray-700 transition duration-300">
                         View on GitHub
@@ -165,9 +163,10 @@
                             <!-- Jerky HPA line (Red) -->
                             <div class="absolute w-full h-full border-b border-gray-600"></div>
                             <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <!-- Cleaned SVG path to avoid console errors -->
                                 <path d="M0,80 C15,20 30,90 45,10 C60,70 75,30 100,50" stroke="#ef4444"
                                     stroke-width="1.5" fill="none" class="animate-pulse opacity-70" />
-                                <path d="M0,60 C25,50 50,75 75,65 100,60" stroke="#38bdf8" stroke-width="2"
+                                <path d="M0,60 C25,50 50,75 75,65 L100,60" stroke="#38bdf8" stroke-width="2"
                                     fill="none" />
                             </svg>
                             <div class="absolute top-0 left-0 text-xs text-red-400">HPA (Jerky)</div>
@@ -191,7 +190,7 @@
                     <div
                         class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
-                            <!-- Icon for Policy -->
+                            <!-- Icon for Policy - Using a stable Check/Shield Icon Path -->
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -247,7 +246,7 @@
                     <div
                         class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
-                            <!-- Icon for Safety/Shield -->
+                            <!-- FIX: Using a clean path for the Shield icon to prevent console errors -->
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -284,11 +283,11 @@
                     <div
                         class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1">
                         <div class="text-4xl k20s-gradient-text mb-4">
-                            <!-- Icon for Integration/Code -->
+                            <!-- FIX: Using a clean path for the Code icon to prevent console errors -->
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
                             </svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Native Kubernetes Experience</h3>
@@ -314,9 +313,10 @@
                             <li>Prometheus installed in the cluster and accessible via a service.</li>
                         </ul>
                         <p class="text-sm mt-4 text-gray-500">
+                            <!-- FIX: Removed './' prefix -->
                             For detailed setup instructions, including using <code
                                 class="bg-gray-800 p-1 rounded">make install</code>, see the <a
-                                href="./generated/make-help/index.html" class="text-sky-400 hover:text-sky-300">Makefile
+                                href="generated/make-help/index.html" class="text-sky-400 hover:text-sky-300">Makefile
                                 Help Documentation</a>.
                         </p>
                     </div>
@@ -386,10 +386,11 @@
                     <pre><code class="language-bash">kubectl apply -f sample-profile.yaml</code></pre>
                 </div>
                 <p class="text-sm mt-8 text-gray-500 text-center">
+                    <!-- FIX: Removed './' prefix -->
                     For a complete reference of the <code
                         class="bg-gray-800 p-1 rounded">ResourceOptimizerProfile</code> fields, check the <a
-                        href="./generated/api-reference/index.html" class="text-sky-400 hover:text-sky-300">API
-                        Reference Documentation</a>.
+                        href="generated/api-reference/index.html" class="text-sky-400 hover:text-sky-300">API Reference
+                        Documentation</a>.
                 </p>
             </div>
         </section>
@@ -404,7 +405,8 @@
                     Get started by deploying the controller and creating your first optimization profile.
                 </p>
                 <!-- CTA: Deploy K20s Now (Link to Main Docs) -->
-                <a href="./generated/index.html"
+                <!-- FIX: Removed './' prefix -->
+                <a href="generated/index.html"
                     class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-full shadow-2xl k20s-gradient hover:ring-8 ring-blue-500/30 transition duration-500 transform hover:scale-105">
                     Deploy K20s Now
                 </a>
@@ -418,14 +420,14 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 space-y-2 sm:space-y-0 sm:space-x-4">
             <span>© 2024 K20s. All rights reserved.</span>
             <span class="hidden sm:inline">|</span>
-            <!-- LINK: Overview -->
-            <a href="./generated/index.html" class="hover:text-sky-400">Documentation Overview</a>
+            <!-- LINK: Overview - FIX: Removed './' prefix -->
+            <a href="generated/index.html" class="hover:text-sky-400">Documentation Overview</a>
             <span class="hidden sm:inline">|</span>
-            <!-- LINK: API Reference -->
-            <a href="./generated/api-reference/index.html" class="hover:text-sky-400">API Reference</a>
+            <!-- LINK: API Reference - FIX: Removed './' prefix -->
+            <a href="generated/api-reference/index.html" class="hover:text-sky-400">API Reference</a>
             <span class="hidden sm:inline">|</span>
-            <!-- LINK: Makefile Help -->
-            <a href="./generated/make-help/index.html" class="hover:text-sky-400">Installation Guide</a>
+            <!-- LINK: Makefile Help - FIX: Removed './' prefix -->
+            <a href="generated/make-help/index.html" class="hover:text-sky-400">Installation Guide</a>
             <span class="hidden sm:inline">|</span>
             <a href="#" class="hover:text-sky-400">Privacy Policy</a>
             <span class="hidden sm:inline">|</span>
