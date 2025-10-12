@@ -1,6 +1,6 @@
 # API Reference
 
-The 
+The
 ResourceOptimizerProfile
  CRD is defined by the following YAML:
 
@@ -13,9 +13,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: resourceoptimizerprofiles.optimizer.example.com
+  name: resourceoptimizerprofiles.optimizer.k20s.opscale.ir
 spec:
-  group: optimizer.example.com
+  group: optimizer.k20s.opscale.ir
   names:
     kind: ResourceOptimizerProfile
     listKind: ResourceOptimizerProfileList

@@ -3,9 +3,8 @@
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
 cliVersion: 4.8.0
-domain: example.com
-layout:
-- go.kubebuilder.io/v4
+domain: k20s.opscale.ir
+layout: go.kubebuilder.io/v4
 projectName: k20s
 repo: github.com/OpScaleHub/K20s
 resources:
@@ -13,7 +12,7 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: example.com
+  domain: k20s.opscale.ir
   group: optimizer
   kind: ResourceOptimizerProfile
   path: github.com/OpScaleHub/K20s/api/v1

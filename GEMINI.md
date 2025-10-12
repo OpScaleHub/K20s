@@ -21,8 +21,8 @@ This is a Kubernetes controller built with Kubebuilder that performs intelligent
 
 ### Initial Setup
 ```bash
-# Initialize Kubebuilder project
-kubebuilder init --domain example.com --repo github.com/OpScaleHub/K20s
+# Initialize Kubebuilder project (example command)
+kubebuilder init --domain k20s.opscale.ir --repo github.com/OpScaleHub/K20s
 kubebuilder create api --group optimizer --version v1 --kind ResourceOptimizerProfile
 ```
 
@@ -111,11 +111,11 @@ kubectl apply -f config/samples/
 # View CRD status
 kubectl get resourceoptimizerprofiles -o yaml
 
-# Check controller logs
+# Check controller logs (the namespace will be k20s-system)
 kubectl logs -n k20s-system deployment/k20s-controller-manager
 
 # Validate CRD installation
-kubectl get crd resourceoptimizerprofiles.optimizer.example.com
+kubectl get crd resourceoptimizerprofiles.optimizer.k20s.opscale.ir
 ```
 
 ### Project-Specific Conventions

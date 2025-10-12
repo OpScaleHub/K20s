@@ -1,11 +1,3 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-    control-plane: controller-manager
-  name: k20s-system
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -49,6 +41,11 @@ spec:
             description: ResourceOptimizerProfileSpec defines the desired state of
               ResourceOptimizerProfile
             properties:
+              cooldownPeriod:
+                description: |-
+                  CooldownPeriod is the duration the controller will wait before taking another scaling action.
+                  Defaults to 5 minutes if not specified.
+                type: string
               cpuThresholds:
                 description: ThresholdSpec defines the thresholds for a resource.
                 properties:
@@ -66,6 +63,22 @@ spec:
                 - max
                 - min
                 type: object
+              maxCPU:
+                anyOf:
+                - type: integer
+                - type: string
+                description: MaxCPU is the maximum CPU request that can be set by
+                  the Resize policy.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+              minCPU:
+                anyOf:
+                - type: integer
+                - type: string
+                description: MinCPU is the minimum CPU request that can be set by
+                  the Resize policy.
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
               optimizationPolicy:
                 enum:
                 - Scale
@@ -174,7 +187,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: type of condition in CamelCase or in foo.k20s.opscale.ir/CamelCase.
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
@@ -190,7 +203,20 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               lastAction:
-                type: string
+                description: ActionDetail records the details of the last action taken
+                  by the controller.
+                properties:
+                  details:
+                    type: string
+                  timestamp:
+                    format: date-time
+                    type: string
+                  type:
+                    type: string
+                required:
+                - timestamp
+                - type
+                type: object
               observedMetrics:
                 additionalProperties:
                   type: string
@@ -205,328 +231,3 @@ spec:
     storage: true
     subresources:
       status: {}
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-controller-manager
-  namespace: k20s-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-leader-election-role
-  namespace: k20s-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: k20s-manager-role
-rules:
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - statefulsets
-  verbs:
-  - get
-  - list
-  - patch
-  - watch
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles/status
-  verbs:
-  - get
-  - patch
-  - update
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: k20s-metrics-auth-role
-rules:
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: k20s-metrics-reader
-rules:
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-resourceoptimizerprofile-admin-role
-rules:
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles
-  verbs:
-  - '*'
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-resourceoptimizerprofile-editor-role
-rules:
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-resourceoptimizerprofile-viewer-role
-rules:
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - optimizer.k20s.opscale.ir
-  resources:
-  - resourceoptimizerprofiles/status
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-leader-election-rolebinding
-  namespace: k20s-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: k20s-leader-election-role
-subjects:
-- kind: ServiceAccount
-  name: k20s-controller-manager
-  namespace: k20s-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-  name: k20s-manager-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: k20s-manager-role
-subjects:
-- kind: ServiceAccount
-  name: k20s-controller-manager
-  namespace: k20s-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: k20s-metrics-auth-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: k20s-metrics-auth-role
-subjects:
-- kind: ServiceAccount
-  name: k20s-controller-manager
-  namespace: k20s-system
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-    control-plane: controller-manager
-  name: k20s-controller-manager-metrics-service
-  namespace: k20s-system
-spec:
-  ports:
-  - name: https
-    port: 8443
-    protocol: TCP
-    targetPort: 8443
-  selector:
-    app.kubernetes.io/name: k20s
-    control-plane: controller-manager
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: k20s
-    control-plane: controller-manager
-  name: k20s-controller-manager
-  namespace: k20s-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: k20s
-      control-plane: controller-manager
-  template:
-    metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
-      labels:
-        app.kubernetes.io/name: k20s
-        control-plane: controller-manager
-    spec:
-      containers:
-      - args:
-        - --metrics-bind-address=:8443
-        - --leader-elect
-        - --health-probe-bind-address=:8081
-        command:
-        - /main
-        image: ghcr.io/opscalehub/k20s:latest
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        name: manager
-        ports: []
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        resources:
-          limits:
-            cpu: 500m
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
-        volumeMounts: []
-      securityContext:
-        runAsGroup: 1001
-        runAsNonRoot: true
-        runAsUser: 1001
-        seccompProfile:
-          type: RuntimeDefault
-      serviceAccountName: k20s-controller-manager
-      terminationGracePeriodSeconds: 10
-      volumes: []

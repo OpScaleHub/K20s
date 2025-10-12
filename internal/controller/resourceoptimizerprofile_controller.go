@@ -83,9 +83,9 @@ type ResourceOptimizerProfileReconciler struct {
 	PrometheusAPI PrometheusClient
 }
 
-// +kubebuilder:rbac:groups=optimizer.example.com,resources=resourceoptimizerprofiles,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=optimizer.example.com,resources=resourceoptimizerprofiles/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=optimizer.example.com,resources=resourceoptimizerprofiles/finalizers,verbs=update
+// +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments;statefulsets,verbs=get;list;watch;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

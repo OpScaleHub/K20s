@@ -1,4 +1,4 @@
-apiVersion: optimizer.example.com/v1
+apiVersion: optimizer.k20s.opscale.ir/v1
 kind: ResourceOptimizerProfile
 metadata:
   labels:

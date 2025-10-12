@@ -19,14 +19,14 @@ echo '
 # Generate API reference
 echo "# API Reference" > docs-src/api-reference.md
 echo "" >> docs-src/api-reference.md
-echo "The 
+echo "The
 ResourceOptimizerProfile
  CRD is defined by the following YAML:" >> docs-src/api-reference.md
 echo "" >> docs-src/api-reference.md
 echo '
 ```yaml
 ' >> docs-src/api-reference.md
-cat config/crd/bases/optimizer.example.com_resourceoptimizerprofiles.yaml >> docs-src/api-reference.md
+cat config/crd/bases/optimizer.k20s.opscale.ir_resourceoptimizerprofiles.yaml >> docs-src/api-reference.md
 echo '
 ```
 ' >> docs-src/api-reference.md
