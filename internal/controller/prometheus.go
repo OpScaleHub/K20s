@@ -24,12 +24,20 @@ func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
 func buildPromQL(profile *optimizerv1.ResourceOptimizerProfile) (string, error) {
 	// This query calculates the average CPU usage over the last hour and divides it by the requested CPU resources.
 	// The result is the CPU utilization as a percentage of the request.
-	// Multiplying by 100 gives a value comparable to the spec's min/max thresholds.
 	query := fmt.Sprintf(`
-		sum(avg_over_time(rate(container_cpu_usage_seconds_total{namespace="%s", pod=~".*%s.*"}[5m])[1h:5m])) by (pod)
+		# Calculate the average CPU usage as a percentage of the requested CPU over the last hour.
+		(
+			sum(avg_over_time(kube_pod_container_resource_usage{resource="cpu", namespace="%s", pod=~".*%s.*"}[1h])) by (pod)
+			and
+			sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod)
+		)
 		/
-		sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod) * 100`,
-		profile.Namespace, profile.Spec.Selector.MatchLabels["app"], profile.Namespace, profile.Spec.Selector.MatchLabels["app"])
+		sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod) * 100
+		`,
+		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
+		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
+		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
+	)
 
 	return query, nil
 }
