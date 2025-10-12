@@ -1,0 +1,9 @@
+site_name: K20s Documentation
+theme:
+  name: material
+nav:
+  - 'Home': 'index.md'
+  - 'Makefile Commands': 'make-help.md'
+  - 'API Reference': 'api-reference.md'
+docs_dir: docs-src
+site_dir: docs

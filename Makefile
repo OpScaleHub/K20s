@@ -169,6 +169,19 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
+##@ Documentation
+
+.PHONY: docs
+docs: ## Generate and build documentation.
+	@echo "Creating virtual environment..."
+	@python3 -m venv .venv
+	@echo "Installing documentation dependencies..."
+	@.venv/bin/pip install -r docs-requirements.txt
+	@echo "Generating documentation sources..."
+	@hack/generate-docs.sh
+	@echo "Building documentation site..."
+	@.venv/bin/mkdocs build --clean
+
 ##@ Dependencies
 
 ## Location to install dependencies to
