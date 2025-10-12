@@ -6,27 +6,36 @@ on:
       - main
 
 permissions:
-  contents: write # to create releases and tags
-  packages: write # to push docker images to ghcr.io
+  contents: write # Required to create releases and tags
+  packages: write # Required to publish packages to GHCR
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Fetch all history for all tags and branches
-          fetch-depth: 0
+          fetch-depth: 0 # Fetches all history for git-based versioning
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
         with:
-          go-version: '1.22' # Specify your project's Go version
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: "patch" # Bumps the patch version (e.g., v0.1.0 -> v0.1.1)
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-        # This is required for building multi-arch images
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set image name
+        env:
+          # Define the base image name. It will be converted to lowercase.
+          RAW_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/k20s
+        run: echo "IMAGE_NAME=$(echo ${{ env.RAW_IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -35,13 +44,20 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
-          # GoReleaser will automatically use the .goreleaser.yml file in the root of your repository.
-          # It will also automatically create a tag and a release on GitHub.
-          # The version will be determined by the commits since the last tag.
-          version: latest
-          args: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.new_tag }}
+            ${{ env.IMAGE_NAME }}:latest
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          generate_release_notes: true
