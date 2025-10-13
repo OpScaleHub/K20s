@@ -30,6 +30,44 @@ spec:
             cpu: "100m"
             memory: "50Mi"
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: my-nginx
+  name: my-nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: my-nginx
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-nginx
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: my-nginx.local.opscale.ir
+    http:
+      paths:
+      - backend:
+          service:
+            name: my-nginx
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - my-nginx.local.opscale.ir
+    secretName: wildcard-tls
+---
 # --- 2. ResourceOptimizerProfile Examples ---
 # Choose ONE of the following profiles to apply.
 

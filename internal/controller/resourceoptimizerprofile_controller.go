@@ -81,6 +81,8 @@ type ResourceOptimizerProfileReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
 	PrometheusAPI PrometheusClient
+	// PrometheusURL records the URL used to connect to Prometheus (for logging/debugging)
+	PrometheusURL string
 }
 
 // +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles,verbs=get;list;watch;create;update;patch;delete
@@ -107,6 +109,8 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 		logger.Error(err, "error building PromQL query")
 		return ctrl.Result{}, err
 	}
+	// Log the query and Prometheus endpoint to make DNS/connectivity problems obvious
+	logger.Info("Built PromQL query", "query", query, "prometheusURL", r.PrometheusURL)
 	result, err := executePromQL(ctx, r.PrometheusAPI, query)
 	if err != nil {
 		logger.Error(err, "error querying Prometheus")
@@ -121,7 +125,20 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 	case model.ValVector:
 		vector := result.(model.Vector)
 		if len(vector) > 0 {
-			value = float64(vector[0].Value)
+			// Average across all returned pod series to derive a representative value
+			var sum float64
+			// Log each sample for debugging
+			for _, sample := range vector {
+				// attempt to extract pod label, fall back to the full metric
+				pod := "unknown"
+				if m, ok := sample.Metric["pod"]; ok {
+					pod = string(m)
+				}
+				log.FromContext(ctx).Info("Prometheus sample", "pod", pod, "value", float64(sample.Value))
+				sum += float64(sample.Value)
+			}
+			value = sum / float64(len(vector))
+			log.FromContext(ctx).Info("Computed CPU percent (average)", "value", value, "seriesCount", len(vector))
 		}
 	default:
 		logger.Info("Prometheus query did not return a vector")
@@ -425,6 +442,10 @@ func (r *ResourceOptimizerProfileReconciler) SetupWithManager(mgr ctrl.Manager) 
 	}
 
 	r.PrometheusAPI = promAPI
+	r.PrometheusURL = prometheusURL
+
+	// Log chosen Prometheus URL on setup so local runs show connectivity target
+	ctrl.Log.WithName("setup").Info("Prometheus URL configured", "url", prometheusURL)
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&optimizerv1.ResourceOptimizerProfile{}).
