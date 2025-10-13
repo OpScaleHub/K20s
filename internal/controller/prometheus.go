@@ -22,22 +22,43 @@ func newPrometheusAPI(prometheusURL string) (prometheusv1.API, error) {
 }
 
 func buildPromQL(profile *optimizerv1.ResourceOptimizerProfile) (string, error) {
-	// This query calculates the average CPU usage over the last hour and divides it by the requested CPU resources.
-	// The result is the CPU utilization as a percentage of the request.
+	// Prefer common metrics that are available in most Prometheus setups:
+	// - container_cpu_usage_seconds_total (cadvisor/container runtime)
+	// - kube_pod_container_resource_requests (kube-state-metrics)
+	// The query below computes the CPU usage (cores) as the rate of cpu seconds and
+	// divides it by the requested CPU to produce a percentage of requested CPU used.
+
+	// Guard: try to read an "app" label value from the selector; if missing, match all pods in the namespace.
+	appLabel := ""
+	if profile.Spec.Selector.MatchLabels != nil {
+		if v, ok := profile.Spec.Selector.MatchLabels["app"]; ok {
+			appLabel = v
+		}
+	}
+
+	var podMatcher string
+	if appLabel == "" {
+		podMatcher = ".*"
+	} else {
+		// match pod names that contain the app label value (common for Deployment-generated pod names)
+		podMatcher = fmt.Sprintf(".*%s.*", appLabel)
+	}
+
+	// Use a short rate window (5m) to reflect recent usage and compute percentage.
+	// Some Prometheus setups expose `container_cpu_usage_seconds_total`, others expose
+	// `container_cpu_user_seconds_total`. Add both rates together so the expression works
+	// in either environment.
+	// The query returns CPU percentage per-pod.
 	query := fmt.Sprintf(`
-		# Calculate the average CPU usage as a percentage of the requested CPU over the last hour.
 		(
-			sum(avg_over_time(kube_pod_container_resource_usage{resource="cpu", namespace="%s", pod=~".*%s.*"}[1h])) by (pod)
-			and
-			sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod)
+		  sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="%s", pod=~"%s"}[5m]))
+		  +
+		  sum by (pod) (rate(container_cpu_user_seconds_total{namespace="%s", pod=~"%s"}[5m]))
 		)
 		/
-		sum(kube_pod_container_resource_requests{resource="cpu", namespace="%s", pod=~".*%s.*"}) by (pod) * 100
-		`,
-		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
-		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
-		profile.Namespace, profile.Spec.Selector.MatchLabels["app"],
-	)
+		sum by (pod) (kube_pod_container_resource_requests{namespace="%s", pod=~"%s", resource="cpu"})
+		* 100
+	`, profile.Namespace, podMatcher, profile.Namespace, podMatcher, profile.Namespace, podMatcher)
 
 	return query, nil
 }
