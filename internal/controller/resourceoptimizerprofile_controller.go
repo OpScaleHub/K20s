@@ -32,7 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	optimizerv1 "github.com/OpScaleHub/K20s/api/v1"
-	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,12 +69,6 @@ func init() {
 	metrics.Registry.MustRegister(scaleUpActions, scaleDownActions, resizeUpActions, resizeDownActions)
 }
 
-// PrometheusClient defines the interface for a Prometheus API client.
-// This simplifies testing by allowing us to mock only the methods we use.
-type PrometheusClient interface {
-	Query(ctx context.Context, query string, ts time.Time, opts ...prometheusv1.Option) (model.Value, prometheusv1.Warnings, error)
-}
-
 // ResourceOptimizerProfileReconciler reconciles a ResourceOptimizerProfile object
 type ResourceOptimizerProfileReconciler struct {
 	client.Client
@@ -104,14 +97,14 @@ func (r *ResourceOptimizerProfileReconciler) Reconcile(ctx context.Context, req 
 
 	// 2. Query Prometheus for metrics
 	logger.Info("Querying Prometheus for metrics...")
-	query, err := buildPromQL(&resourceOptimizerProfile)
+	query, err := buildPromQL(ctx, r.Client, &resourceOptimizerProfile)
 	if err != nil {
 		logger.Error(err, "error building PromQL query")
 		return ctrl.Result{}, err
 	}
 	// Log the query and Prometheus endpoint to make DNS/connectivity problems obvious
 	logger.Info("Built PromQL query", "query", query, "prometheusURL", r.PrometheusURL)
-	result, err := executePromQL(ctx, r.PrometheusAPI, query)
+	result, err := executePromQL(ctx, r.PrometheusAPI, query) // This function is not provided, assuming it exists
 	if err != nil {
 		logger.Error(err, "error querying Prometheus")
 		return ctrl.Result{}, err
