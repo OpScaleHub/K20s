@@ -82,6 +82,7 @@ type ResourceOptimizerProfileReconciler struct {
 // +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=optimizer.k20s.opscale.ir,resources=resourceoptimizerprofiles/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments;statefulsets,verbs=get;list;watch;patch
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
