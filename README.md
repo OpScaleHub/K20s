@@ -62,3 +62,8 @@ The core `Reconcile` loop will involve two critical, challenging steps:
 | **Go Controller Implementation** | The controller successfully queries Prometheus and can scale a test deployment up/down based on the profile thresholds. |
 | **Prometheus Metrics Exposure** | The controller itself will expose its own performance metrics (via `controller-runtime`) for latency and error rates, which are then scraped by Prometheus. |
 | **Clean Codebase** | Adherence to Go idioms and the standard Kubebuilder project layout. |
+
+
+
+###
+check it out CLI

@@ -88,42 +88,42 @@ spec:
   cpuThresholds:
     min: 20
     max: 60
----
-# Option B: "Scale" Policy
-# This profile will automatically scale the number of replicas for the
-# Nginx deployment up or down to keep CPU usage within the target range.
-apiVersion: optimizer.k20s.opscale.ir/v1
-kind: ResourceOptimizerProfile
-metadata:
-  name: my-nginx-scale
-  namespace: default
-spec:
-  selector:
-    matchLabels:
-      app: my-nginx
-  optimizationPolicy: Scale
-  cpuThresholds:
-    min: 20
-    max: 60
-  cooldownPeriod: "2m" # Wait 2 minutes between scaling actions
----
-# Option C: "Resize" Policy
-# This profile will automatically change the CPU requests of the Nginx
-# pods to keep usage within the target range. It includes safety rails.
-apiVersion: optimizer.k20s.opscale.ir/v1
-kind: ResourceOptimizerProfile
-metadata:
-  name: my-nginx-resize
-  namespace: default
-spec:
-  selector:
-    matchLabels:
-      app: my-nginx
-  optimizationPolicy: Resize
-  cpuThresholds:
-    min: 20
-    max: 60
-  cooldownPeriod: "5m"
-  minCPU: "50m"   # Safety rail: never set CPU request below 50m
-  maxCPU: "500m"  # Safety rail: never set CPU request above 500m
+# ---
+# # Option B: "Scale" Policy
+# # This profile will automatically scale the number of replicas for the
+# # Nginx deployment up or down to keep CPU usage within the target range.
+# apiVersion: optimizer.k20s.opscale.ir/v1
+# kind: ResourceOptimizerProfile
+# metadata:
+#   name: my-nginx-scale
+#   namespace: default
+# spec:
+#   selector:
+#     matchLabels:
+#       app: my-nginx
+#   optimizationPolicy: Scale
+#   cpuThresholds:
+#     min: 20
+#     max: 60
+#   cooldownPeriod: "2m" # Wait 2 minutes between scaling actions
+# ---
+# # Option C: "Resize" Policy
+# # This profile will automatically change the CPU requests of the Nginx
+# # pods to keep usage within the target range. It includes safety rails.
+# apiVersion: optimizer.k20s.opscale.ir/v1
+# kind: ResourceOptimizerProfile
+# metadata:
+#   name: my-nginx-resize
+#   namespace: default
+# spec:
+#   selector:
+#     matchLabels:
+#       app: my-nginx
+#   optimizationPolicy: Resize
+#   cpuThresholds:
+#     min: 20
+#     max: 60
+#   cooldownPeriod: "5m"
+#   minCPU: "50m"   # Safety rail: never set CPU request below 50m
+#   maxCPU: "500m"  # Safety rail: never set CPU request above 500m
 ...
