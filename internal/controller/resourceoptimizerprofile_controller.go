@@ -278,11 +278,15 @@ func (r *ResourceOptimizerProfileReconciler) executeScaleAction(ctx context.Cont
 
 	for _, deployment := range deployments.Items {
 		patch := client.MergeFrom(deployment.DeepCopy())
+		var currentReplicas int32 = 1
+		if deployment.Spec.Replicas != nil {
+			currentReplicas = *deployment.Spec.Replicas
+		}
 		var newReplicas int32
 		if action == ScaleUpAction {
-			newReplicas = *deployment.Spec.Replicas + 1
+			newReplicas = currentReplicas + 1
 		} else {
-			newReplicas = *deployment.Spec.Replicas - 1
+			newReplicas = currentReplicas - 1
 		}
 
 		if newReplicas < 1 {
@@ -305,11 +309,15 @@ func (r *ResourceOptimizerProfileReconciler) executeScaleAction(ctx context.Cont
 
 	for _, statefulSet := range statefulSets.Items {
 		patch := client.MergeFrom(statefulSet.DeepCopy())
+		var currentReplicas int32 = 1
+		if statefulSet.Spec.Replicas != nil {
+			currentReplicas = *statefulSet.Spec.Replicas
+		}
 		var newReplicas int32
 		if action == ScaleUpAction {
-			newReplicas = *statefulSet.Spec.Replicas + 1
+			newReplicas = currentReplicas + 1
 		} else {
-			newReplicas = *statefulSet.Spec.Replicas - 1
+			newReplicas = currentReplicas - 1
 		}
 
 		if newReplicas < 1 {
@@ -357,15 +365,19 @@ func (r *ResourceOptimizerProfileReconciler) executeResizeAction(ctx context.Con
 				// Add a 25% buffer for safety
 				newCPUValue *= 1.25
 
-				newCPURequest := resource.NewMilliQuantity(int64(newCPUValue*1000), resource.DecimalSI)
+				milliVal := int64(newCPUValue * 1000)
+				if milliVal < 1 {
+					milliVal = 1
+				}
+				newCPURequest := resource.NewMilliQuantity(milliVal, resource.DecimalSI)
 
 				// Enforce min/max boundaries if they are defined in the spec
 				if profile.Spec.MinCPU != nil && newCPURequest.Cmp(*profile.Spec.MinCPU) < 0 {
-					newCPURequest = profile.Spec.MinCPU
+					newCPURequest = resource.NewMilliQuantity(profile.Spec.MinCPU.MilliValue(), resource.DecimalSI)
 					logger.Info("Clamping CPU request to configured minCPU", "deployment", deployment.Name, "minCPU", profile.Spec.MinCPU.String())
 				}
 				if profile.Spec.MaxCPU != nil && newCPURequest.Cmp(*profile.Spec.MaxCPU) > 0 {
-					newCPURequest = profile.Spec.MaxCPU
+					newCPURequest = resource.NewMilliQuantity(profile.Spec.MaxCPU.MilliValue(), resource.DecimalSI)
 					logger.Info("Clamping CPU request to configured maxCPU", "deployment", deployment.Name, "maxCPU", profile.Spec.MaxCPU.String())
 				}
 
@@ -396,15 +408,19 @@ func (r *ResourceOptimizerProfileReconciler) executeResizeAction(ctx context.Con
 				newCPUValue := (observedValue / targetUsagePercent) * container.Resources.Requests.Cpu().AsApproximateFloat64()
 				newCPUValue *= 1.25 // Add 25% buffer
 
-				newCPURequest := resource.NewMilliQuantity(int64(newCPUValue*1000), resource.DecimalSI)
+				milliVal := int64(newCPUValue * 1000)
+				if milliVal < 1 {
+					milliVal = 1
+				}
+				newCPURequest := resource.NewMilliQuantity(milliVal, resource.DecimalSI)
 
 				// Enforce min/max boundaries if they are defined in the spec
 				if profile.Spec.MinCPU != nil && newCPURequest.Cmp(*profile.Spec.MinCPU) < 0 {
-					newCPURequest = profile.Spec.MinCPU
+					newCPURequest = resource.NewMilliQuantity(profile.Spec.MinCPU.MilliValue(), resource.DecimalSI)
 					logger.Info("Clamping CPU request to configured minCPU", "statefulset", ss.Name, "minCPU", profile.Spec.MinCPU.String())
 				}
 				if profile.Spec.MaxCPU != nil && newCPURequest.Cmp(*profile.Spec.MaxCPU) > 0 {
-					newCPURequest = profile.Spec.MaxCPU
+					newCPURequest = resource.NewMilliQuantity(profile.Spec.MaxCPU.MilliValue(), resource.DecimalSI)
 					logger.Info("Clamping CPU request to configured maxCPU", "statefulset", ss.Name, "maxCPU", profile.Spec.MaxCPU.String())
 				}
 

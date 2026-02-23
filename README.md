@@ -1,69 +1,83 @@
-## Project Proposal: K20s 🚀
-
-| Item | Detail |
-| :--- | :--- |
-| **Project Name** | **K20s** |
-| **Primary Goal** | Develop a Kubernetes controller in Golang, using Kubebuilder, to perform "smart" workload autoscaling and rightsizing recommendations based on Prometheus-derived resource utilization metrics. |
+# K20s: Smart Kubernetes Workload Autoscaler 🚀
 
 [![pages-build-deployment](https://github.com/OpScaleHub/K20s/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/OpScaleHub/K20s/actions/workflows/pages/pages-build-deployment)
----
 
-## 1. Concept and Rationale
-
-The native Kubernetes Horizontal Pod Autoscaler (HPA) and Vertical Pod Autoscaler (VPA) rely primarily on the `metrics-server`'s instantaneous resource usage. The **ResourceOptimizer Controller** will introduce a more sophisticated, policy-driven approach by leveraging the **long-term, historical data** already stored in our Prometheus/Thanos stack.
-
-This project will create a **Custom Resource Definition (CRD)**, the `ResourceOptimizerProfile`, allowing users to declaratively define optimization policies (e.g., "Keep my `env: staging` apps between 30% and 75% CPU utilization") and the desired action.
+K20s is a Kubebuilder-based Kubernetes Controller designed to perform intelligent workload autoscaling and rightsizing. Unlike native Kubernetes HPA/VPA that react to instantaneous metrics, K20s queries **long-term historical data via Prometheus** (executed through PromQL) to orchestrate state changes, preventing sudden spikes from triggering oscillatory scaling behavior.
 
 ---
 
-## 2. Key Components
+## 🏗️ Architecture
 
-### 2.1. The Custom Resource: `ResourceOptimizerProfile`
+K20s acts upon the declarative Custom Resource Definition (CRD) `ResourceOptimizerProfile`. 
 
-This CRD will define the desired monitoring and optimization state for a set of workloads.
+### Key Capabilities
+- **Historical Analysis:** Queries Prometheus deployments directly to calculate time-series averages.
+- **Horizontal Scaling (`Scale`):** Adjusts Deployment and StatefulSet `.spec.replicas` when workloads leave the configured "Goldilocks Zone".
+- **Vertical Rightsizing (`Resize`):** Modifies pod container CPU resource `requests` based on percentage utilizations, intelligently computing optimal bounds (protecting against zero-rounding errors with a `1m` minimum limit).
+- **Safety Measures:** Includes defined `.spec.cooldownPeriod` to prevent rapid consecutive actions, and extensive nil-pointer safeguards for unconfigured targets.
+
+### Supported Environments
+- Optimized and tested heavily on lightweight Kubernetes distributions like **k3s**.
+- Integrates seamlessly out-of-the-box with `prometheus-community/kube-prometheus-stack`.
+
+---
+
+## 📋 The `ResourceOptimizerProfile` CRD
+
+The operator monitors instances of `ResourceOptimizerProfiles` targetting your workloads.
 
 | Field | Description | Purpose |
 | :--- | :--- | :--- |
-| **`.spec.selector`** | Standard Kubernetes label selector. | Targets specific `Deployments` or `StatefulSets`. |
-| **`.spec.cpuThresholds`** | `minPercent` and `maxPercent` utilization targets (e.g., 30/75). | Defines the "Goldilocks Zone" for resource usage. |
-| **`.spec.optimizationPolicy`**| Policy for automated action (`Scale`, `Resize`, `Recommend`). | Determines what the controller will attempt to change. |
-| **`.status.observedMetrics`**| Latest utilization fetched from Prometheus. | Provides observability into the controller's decision-making data. |
-| **`.status.lastAction`** | Timestamp and details of the last autoscaling action. | Tracks and prevents rapid, oscillatory changes. |
-
-### 2.2. The Controller Logic (Go Implementation)
-
-The core `Reconcile` loop will involve two critical, challenging steps:
-
-1.  **Prometheus Integration:**
-    * Use a dedicated Go client library (e.g., `promql/api/v1`) to construct and execute **PromQL queries** against the Prometheus HTTP API.
-    * *Example Query:* `avg_over_time(cpu_usage_rate{job="kubelet", namespace="{{.Namespace}}", selector="{{.Selector}}"} [1h])`
-    * This is the most complex part and is essential for Go/Kubebuilder practice.
-2.  **Actuation and Reconciliation:**
-    * Compare the query result against the `.spec.cpuThresholds`.
-    * If a violation occurs and the policy is `Scale`, use the **Client-Go** library to retrieve the owning workload (Deployment/StatefulSet) and **patch the `.spec.replicas`** field accordingly.
-    * If the policy is `Recommend`, calculate a new suggested `requests`/`limits` value and populate the `.status.recommendations` field instead of performing an automatic patch.
+| **`.spec.selector`** | Standard Kubernetes label selector. | Identifies specific `Deployments` or `StatefulSets` (e.g. `app: my-app`). |
+| **`.spec.cpuThresholds`** | `min` and `max` utilization targets. | Keeps average Prometheus CPU requests bounded (e.g., 30/75). |
+| **`.spec.optimizationPolicy`**| `Scale`, `Resize`, or `Recommend`. | Decides if it horizontally scales pods or vertically adjusts container requests. |
+| **`.spec.cooldownPeriod`** | Go duration string (e.g. `5m`). | Prevents oscillation loops immediately following actions. |
+| **`.status.observedMetrics`**| Fetched PromQL output. | Observability into decision-making logic. |
+| **`.status.lastAction`** | Timestamp tracking. | Tracks the previous action executed. |
 
 ---
 
-## 3. Technology Stack
+## 🛠️ Technology Stack
+- **Language:** Go (Golang)
+- **Framework:** Kubebuilder / controller-runtime
+- **Interfacing:** `k8s.io/client-go` for resource patching, `prometheus/client_golang` for API evaluations.
 
-* **Language:** Go (Golang)
-* **Framework:** Kubebuilder
-* **Libraries:** `sigs.k8s.io/controller-runtime`, `k8s.io/client-go`, and a PromQL/Prometheus client library.
-* **Environment:** Existing Kubernetes cluster with Prometheus deployed and accessible via a Service.
+## 🚀 Getting Started
+
+### 1. Prerequisites
+Ensure you have a monitoring stack actively scraping `container_cpu_usage_seconds_total`. 
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+```
+
+### 2. Deploy the Controller
+```bash
+# Make sure PROMETHEUS_URL environment variable points to your service
+export PROMETHEUS_URL="http://prometheus-operated.monitoring.svc:9090"
+make install
+make run
+```
+
+### 3. Apply a Profile
+```yaml
+apiVersion: optimizer.k20s.opscale.ir/v1
+kind: ResourceOptimizerProfile
+metadata:
+  name: sample-profile
+spec:
+  selector:
+    matchLabels:
+      app: target-workload
+  cpuThresholds:
+    min: 20
+    max: 80
+  optimizationPolicy: Scale
+  cooldownPeriod: 2m
+```
+Apply using `kubectl apply -f sample-profile.yaml`.
 
 ---
 
-## 4. Deliverables and Success Criteria
-
-| Deliverable | Success Criteria |
-| :--- | :--- |
-| **`ResourceOptimizerProfile` CRD** | The CRD is correctly installed and validated using `kubectl apply -f`. |
-| **Go Controller Implementation** | The controller successfully queries Prometheus and can scale a test deployment up/down based on the profile thresholds. |
-| **Prometheus Metrics Exposure** | The controller itself will expose its own performance metrics (via `controller-runtime`) for latency and error rates, which are then scraped by Prometheus. |
-| **Clean Codebase** | Adherence to Go idioms and the standard Kubebuilder project layout. |
-
-
-
-###
-check it out CLI
+### Project Status
+ Development is **complete** for the core engine. Bugs related to Replica nil-pointers and decimal-rounding `0m` CPU limits have been patched in the latest iteration.

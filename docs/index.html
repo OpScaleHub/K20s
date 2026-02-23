@@ -217,9 +217,10 @@
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold mb-3">Historical Data Analysis</h3>
+                        <h3 class="text-xl font-semibold mb-3">Edge-Ready & Historical Analysis</h3>
                         <p class="text-gray-400">
-                            Integrates directly with <strong>Prometheus</strong> to analyze resource utilization over
+                            Optimized for lightweight distributions like <strong>k3s</strong>. Integrates directly with
+                            <strong>Prometheus</strong> to analyze resource utilization over
                             extended periods, providing deep context for stable rightsizing.
                         </p>
                     </div>
@@ -256,7 +257,8 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-3">Built-in Stability & Safety</h3>
                         <p class="text-gray-400">
-                            Features like <strong>cooldown periods</strong> and explicit min/max boundaries prevent
+                            Features like <strong>cooldown periods</strong>, nil-pointer resilience, and intelligent
+                            <code class="text-sky-300">1m</code> minimum CPU bounds prevent
                             oscillatory scaling and ensure your cluster remains stable and predictable.
                         </p>
                     </div>
@@ -375,9 +377,10 @@
 <span class="code-line">    matchLabels:</span>
 <span class="code-line">      app: sample-app</span>
 <span class="code-line">  cpuThresholds:</span>
-<span class="code-line">    minPercent: 30</span>
-<span class="code-line">    maxPercent: 75</span>
+<span class="code-line">    min: 30</span>
+<span class="code-line">    max: 75</span>
 <span class="code-line">  optimizationPolicy: Scale</span>
+<span class="code-line">  cooldownPeriod: 2m</span>
 </code></pre>
                 </div>
                 <div class="mt-8">
